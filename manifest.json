@@ -1,0 +1,27 @@
+{
+  "name": "StokKu — Catatan Stok & Belanja",
+  "short_name": "StokKu",
+  "description": "Catatan stok & daftar belanja multi-lokasi",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "lang": "id",
+  "categories": ["productivity", "utilities", "shopping"],
+  "icons": [
+    {
+      "src": "icon-stokku-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-stokku-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

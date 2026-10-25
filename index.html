@@ -1,0 +1,3566 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<title>StokKu</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StokKu">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, select { user-select: text; -webkit-user-select: text; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #000; color: #e6edf3;
+    width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+
+/* HEADER */
+header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: #0d1117;
+    border-bottom: 1px solid #21262d;
+    z-index: 10; flex-shrink: 0; gap: 6px;
+}
+header .left { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+header .title { font-size: 14px; font-weight: 700; color: #e6edf3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+header .title span { color: #58a6ff; }
+header .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.header-btn {
+    padding: 7px 12px; background: #21262d; border: 1px solid #30363d;
+    border-radius: 8px; color: #e6edf3; font-size: 12px;
+    font-weight: 600; cursor: pointer; flex-shrink: 0;
+}
+.header-btn:active { background: #30363d; }
+.header-btn.hidden { display: none; }
+
+/* MAIN */
+main {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 14px 90px;
+}
+.view { display: none; }
+.view.active { display: block; }
+body.has-selection main { padding-bottom: 100px; }
+body.has-selection .bottom-bar { display: flex; }
+body.has-selection .bottom-nav { display: none; }
+#cartList { max-height: 55vh; overflow-y: auto; }
+
+/* TOOLBAR */
+.toolbar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.search-input {
+    flex: 1; min-width: 160px;
+    padding: 8px 12px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 8px;
+    color: #e6edf3; font-size: 13px;
+}
+.search-input:focus { outline: none; border-color: #58a6ff; }
+.search-input::placeholder { color: #7d8590; }
+
+/* CHIPS */
+.chip-strip {
+    display: flex; gap: 6px; overflow-x: auto;
+    padding-bottom: 10px; scrollbar-width: none; margin-bottom: 4px;
+}
+.chip-strip::-webkit-scrollbar { display: none; }
+.chip {
+    flex-shrink: 0; padding: 6px 12px;
+    background: #21262d; border: 1px solid #30363d;
+    border-radius: 16px; font-size: 11px;
+    color: #e6edf3; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+}
+.chip.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+
+/* LOKASI CARDS */
+.loc-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    margin-bottom: 8px; cursor: pointer;
+    transition: border-color 0.15s;
+}
+.loc-card:active { border-color: #58a6ff; }
+.loc-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: #21262d; color: #58a6ff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+}
+.loc-body { flex: 1; min-width: 0; }
+.loc-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.loc-meta { font-size: 11px; color: #7d8590; }
+.loc-meta b { color: #da3633; }
+.loc-del {
+    background: transparent; border: none; color: #7d8590;
+    padding: 6px; border-radius: 6px; cursor: pointer; font-size: 16px;
+}
+.loc-del:active { background: #21262d; color: #da3633; }
+
+/* ITEM BARANG (beranda) */
+.item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    margin-bottom: 6px; border-left: 3px solid #30363d;
+}
+.item[data-c="red"] { border-left-color: #da3633; }
+.item[data-c="yellow"] { border-left-color: #d29922; }
+.item[data-c="green"] { border-left-color: #238636; }
+.item[data-c="grey"] { border-left-color: #30363d; }
+
+.item-info { flex: 1; min-width: 0; }
+.item-kode {
+    font-family: ui-monospace, monospace; font-size: 10px;
+    color: #7d8590; letter-spacing: 0.3px;
+}
+.item-nama {
+    font-size: 13px; font-weight: 600; margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item-merek { font-size: 11px; color: #7d8590; margin-top: 1px; }
+.item-keterangan {
+    font-size: 10px; color: #d29922; margin-top: 3px;
+    font-style: italic; line-height: 1.3;
+    border-left: 2px solid #d29922; padding-left: 6px;
+}
+.item-meta { font-size: 10px; color: #7d8590; margin-top: 3px; }
+
+.stok-group {
+    display: flex; align-items: center; gap: 3px;
+    background: #21262d; border-radius: 8px;
+    padding: 0 8px 0 0; flex-shrink: 0;
+    border: 1px solid transparent; transition: border-color 0.15s;
+}
+.stok-group:focus-within { border-color: #58a6ff; }
+.stok-group input {
+    width: 48px; padding: 8px 0;
+    background: transparent; border: none;
+    color: #58a6ff; font-size: 14px; font-weight: 700;
+    text-align: center;
+}
+.stok-group input:focus { outline: none; }
+.stok-unit { font-size: 10px; color: #7d8590; font-weight: 600; }
+
+/* DATA BARANG VIEW */
+.data-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    margin-bottom: 6px; border-left: 3px solid #30363d;
+}
+.data-item[data-c="red"] { border-left-color: #da3633; }
+.data-item[data-c="yellow"] { border-left-color: #d29922; }
+.data-item[data-c="green"] { border-left-color: #238636; }
+.data-item[data-c="grey"] { border-left-color: #30363d; }
+
+.data-item-info { flex: 1; min-width: 0; }
+.data-item-btn {
+    background: #21262d; border: 1px solid #30363d;
+    color: #e6edf3; width: 36px; height: 36px;
+    border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+}
+.data-item-btn:active { background: #30363d; }
+.data-item-btn.edit:active { background: #1f6feb; border-color: #1f6feb; }
+.data-item-btn.del:active { background: #da3633; border-color: #da3633; color: #fff; }
+
+/* BELANJA MODE */
+.belanja-item {
+    padding: 10px 12px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    margin-bottom: 6px; border-left: 3px solid #30363d;
+}
+.belanja-item[data-c="red"] { border-left-color: #da3633; }
+.belanja-item[data-c="yellow"] { border-left-color: #d29922; }
+.belanja-item[data-c="green"] { border-left-color: #238636; }
+.belanja-item[data-c="grey"] { border-left-color: #30363d; }
+
+.belanja-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.belanja-check {
+    width: 20px; height: 20px; margin-top: 1px;
+    accent-color: #1f6feb; cursor: pointer; flex-shrink: 0;
+}
+.belanja-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1px dashed #30363d;
+}
+.stok-ro { font-size: 11px; color: #7d8590; }
+.stok-ro b { color: #e6edf3; }
+.qty-group {
+    display: flex; align-items: center; gap: 3px;
+    background: rgba(88, 166, 255, 0.12);
+    border-radius: 8px; padding: 0 4px 0 8px;
+}
+.qty-group label { font-size: 10px; color: #58a6ff; font-weight: 600; }
+.qty-group input {
+    width: 46px; padding: 6px 0;
+    background: transparent; border: none;
+    color: #58a6ff; font-size: 13px; font-weight: 700;
+    text-align: center;
+}
+.qty-group input:focus { outline: none; }
+.qty-unit { font-size: 10px; color: #58a6ff; padding-right: 4px; }
+
+/* BOTTOM BAR */
+.bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #0d1117; border-top: 1px solid #21262d;
+    padding: 8px 10px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    display: none; gap: 6px; z-index: 50;
+}
+body.belanja-mode .bottom-bar { display: flex; }
+.bottom-bar button { flex: 1; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #0d1117; border-top: 1px solid #21262d;
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    padding: 6px 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    z-index: 40;
+}
+.bottom-nav.hidden { display: none; }
+.nav-btn {
+    background: transparent; border: none;
+    color: #7d8590; font-size: 10px; font-weight: 600;
+    padding: 6px 4px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.nav-btn .icon { font-size: 20px; line-height: 1; }
+.nav-btn.active { color: #58a6ff; }
+
+/* BUTTONS */
+.btn {
+    padding: 10px 14px; background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    color: #e6edf3; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+}
+.btn:active { background: #30363d; }
+.btn-primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.btn-primary:active { background: #388bfd; }
+.btn-danger { background: #da3633; border-color: #da3633; color: #fff; }
+.btn-block { width: 100%; }
+
+/* FORM */
+.form-field { margin-bottom: 12px; }
+.form-label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: #7d8590; text-transform: uppercase;
+    letter-spacing: 0.3px; margin-bottom: 5px;
+}
+.form-input {
+    width: 100%; padding: 10px 12px;
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 8px; color: #e6edf3; font-size: 14px;
+    textarea.form-input.auto-grow { resize: none; overflow: hidden; min-height: 80px; }
+}
+.form-input:focus { outline: none; border-color: #58a6ff; }
+.form-input::placeholder { color: #7d8590; }
+    textarea.form-input { resize: vertical; min-height: 60px; font-family: inherit; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.form-help {
+    font-size: 11px; color: #7d8590;
+    line-height: 1.5; margin: 6px 0 10px;
+}
+
+/* EMPTY */
+.empty {
+    text-align: center; padding: 40px 20px;
+    color: #7d8590; font-size: 13px;
+}
+.empty-icon { font-size: 40px; opacity: 0.5; margin-bottom: 10px; }
+
+/* KALKULATOR */
+.calc-row {
+    padding: 10px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    margin-bottom: 8px;
+    display: grid; grid-template-columns: 1fr auto auto auto;
+    gap: 6px; align-items: center;
+}
+.calc-row .c-nama {
+    grid-column: 1 / -1;
+    padding: 7px 10px; background: #21262d;
+    border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; font-size: 13px;
+}
+.calc-row .c-nama:focus { outline: none; border-color: #58a6ff; }
+.calc-row .c-num {
+    width: 62px; padding: 7px;
+    background: #21262d; border: 1px solid #30363d;
+    border-radius: 6px; color: #58a6ff;
+    font-size: 13px; font-weight: 600; text-align: right;
+}
+.calc-row .c-num:focus { outline: none; border-color: #58a6ff; }
+.calc-row .c-sub {
+    font-size: 12px; font-weight: 700; color: #58a6ff;
+    text-align: right; min-width: 70px;
+}
+.calc-row .c-del {
+    background: transparent; border: none;
+    color: #7d8590; cursor: pointer;
+    padding: 4px; border-radius: 6px; font-size: 14px;
+    width: 28px; height: 28px;
+}
+.calc-row .c-del:active { background: #21262d; color: #da3633; }
+.calc-total {
+    background: linear-gradient(135deg, #1f6feb, #0d4a99);
+    color: #fff; padding: 12px 16px;
+    border-radius: 10px; margin: 12px 0;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.calc-total-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;
+}
+.calc-total-value { font-size: 22px; font-weight: 700; }
+
+/* MODAL */
+.modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000; padding: 16px; overflow-y: auto;
+}
+.modal.active { display: flex; align-items: flex-start; justify-content: center; padding-top: 60px; }
+.modal-content {
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 12px; padding: 16px;
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: calc(100vh - 120px); overflow-y: auto;
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 14px; font-weight: 700; color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 10px; margin-bottom: 4px;
+}
+.modal-close {
+    background: transparent; border: none;
+    color: #da3633; font-size: 20px;
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+}
+.modal-close:active { background: #21262d; }
+.menu-item {
+    padding: 12px; background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    color: #e6edf3; font-size: 13px; font-weight: 600;
+    cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 10px;
+}
+.menu-item:active { background: #30363d; }
+
+/* SHARE TEXTAREA */
+.share-text {
+    width: 100%; min-height: 200px;
+    padding: 10px; background: #0d1117;
+    border: 1px solid #30363d; border-radius: 8px;
+    color: #58a6ff; font-family: ui-monospace, monospace;
+    font-size: 12px; line-height: 1.5; resize: vertical;
+}
+.share-text:focus { outline: none; border-color: #58a6ff; }
+
+/* TOAST */
+#toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #21262d; color: #e6edf3;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    border: 1px solid #30363d;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999; max-width: 90vw; text-align: center;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; cursor: pointer; }
+#toast.success { border-color: #238636; }
+#toast.error { border-color: #da3633; }
+
+/* LIGHT THEME */
+body.light { background: #fff; color: #1f2328; }
+body.light header { background: #f6f8fa; border-bottom-color: #d0d7de; }
+body.light header .title { color: #1f2328; }
+body.light .header-btn { background: #eaeef2; border-color: #d0d7de; color: #1f2328; }
+body.light .search-input { background: #f6f8fa; border-color: #d0d7de; color: #1f2328; }
+body.light .chip { background: #eaeef2; border-color: #d0d7de; color: #1f2328; }
+body.light .loc-card { background: #f6f8fa; border-color: #d0d7de; }
+body.light .item,
+body.light .data-item,
+body.light .belanja-item { background: #f6f8fa; border-color: #d0d7de; }
+body.light .stok-group,
+body.light .data-item-btn { background: #eaeef2; }
+body.light .stok-group input { color: #0969da; }
+body.light .bottom-nav,
+body.light .bottom-bar { background: #f6f8fa; border-top-color: #d0d7de; }
+body.light .nav-btn { color: #57606a; }
+body.light .nav-btn.active { color: #0969da; }
+body.light .btn { background: #eaeef2; border-color: #d0d7de; color: #1f2328; }
+body.light .form-input { background: #f6f8fa; border-color: #d0d7de; color: #1f2328; }
+body.light .modal-content { background: #fff; border-color: #d0d7de; }
+body.light .menu-item { background: #f6f8fa; border-color: #d0d7de; color: #1f2328; }
+body.light .calc-row { background: #f6f8fa; border-color: #d0d7de; }
+body.light .calc-row .c-nama,
+body.light .calc-row .c-num { background: #eaeef2; border-color: #d0d7de; color: #1f2328; }
+body.light .share-text { background: #f6f8fa; border-color: #d0d7de; }
+body.light .item-merek, body.light .item-kode, body.light .item-meta,
+body.light .stok-ro, body.light .loc-meta, body.light .form-label { color: #57606a; }
+body.light .item-keterangan { color: #b35900; border-left-color: #b35900; }
+body.light #toast { background: #1f2328; border-color: #30363d; color: #fff; }
+
+/* ═══ EXCEL-LIKE TABLE ═══ */
+.table-wrap {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.data-table th {
+    background: #21262d;
+    color: #7d8590;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 8px 6px;
+    text-align: left;
+    border-bottom: 1px solid #30363d;
+    white-space: nowrap;
+}
+.data-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #21262d;
+    vertical-align: middle;
+    color: #e6edf3;
+}
+.data-table tr:last-child td { border-bottom: none; }
+
+.data-table tr[data-c="red"] { background: rgba(218,54,51,0.05); }
+.data-table tr[data-c="yellow"] { background: rgba(210,153,34,0.05); }
+.data-table tr[data-c="green"] { background: rgba(35,134,54,0.05); }
+.data-table tr[data-c="red"] td:first-child { border-left: 3px solid #da3633; }
+.data-table tr[data-c="yellow"] td:first-child { border-left: 3px solid #d29922; }
+.data-table tr[data-c="green"] td:first-child { border-left: 3px solid #238636; }
+.data-table tr[data-c="grey"] td:first-child { border-left: 3px solid #30363d; }
+
+.col-kode {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: #7d8590;
+    white-space: nowrap;
+}
+.col-nama {
+    font-weight: 600;
+    min-width: 110px;
+    max-width: 220px;
+}
+.col-nama .sub-ket {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 10px;
+    color: #d29922;
+    font-style: italic;
+    font-weight: 400;
+    margin-top: 2px;
+    cursor: pointer;
+    padding: 1px 3px;
+    border-radius: 3px;
+    transition: background 0.15s;
+    word-break: break-word;
+}
+.col-nama .sub-ket:active { background: rgba(210,153,34,0.15); }
+
+/* Popup keterangan */
+#keteranganContent {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e6edf3;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+.col-merek { color: #7d8590; font-size: 11px; white-space: nowrap; }
+.col-stok { text-align: center; white-space: nowrap; }
+.col-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.col-harga { text-align: right; font-size: 11px; white-space: nowrap; }
+.col-check-tbl { width: 28px; text-align: center; }
+.col-qty-tbl { text-align: center; }
+.col-aksi { text-align: center; white-space: nowrap; }
+
+.stok-input-tbl {
+    width: 44px;
+    padding: 5px 4px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #58a6ff;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+.stok-input-tbl:focus { outline: none; border-color: #58a6ff; }
+.unit-tbl { font-size: 9px; color: #7d8590; margin-left: 2px; }
+
+.qty-input-tbl {
+    width: 44px;
+    padding: 5px 4px;
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 6px;
+    color: #58a6ff;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+.qty-input-tbl:focus { outline: none; border-color: #58a6ff; }
+
+.col-aksi .data-item-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    display: inline-flex;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+
+@media (max-width: 500px) {
+    .data-table th, .data-table td { padding: 7px 4px; font-size: 11px; }
+    .col-kode { font-size: 9px; }
+    .stok-input-tbl, .qty-input-tbl { width: 38px; font-size: 12px; }
+    .col-nama { max-width: 160px; }
+}
+
+body.light .table-wrap { background: #fff; border-color: #d0d7de; }
+body.light .data-table th { background: #f6f8fa; color: #57606a; border-bottom-color: #d0d7de; }
+body.light .data-table td { border-bottom-color: #eaeef2; color: #1f2328; }
+body.light .col-kode, body.light .col-merek { color: #57606a; }
+body.light .stok-input-tbl { background: #eaeef2; border-color: #d0d7de; color: #0969da; }
+body.light .qty-input-tbl { background: rgba(9,105,218,0.08); border-color: rgba(9,105,218,0.3); color: #0969da; }
+body.light .col-nama .sub-ket { color: #b35900; }
+body.light #keteranganContent { color: #1f2328; }
+
+@media (max-width: 400px) {
+    main { padding: 10px 10px 90px; }
+    .stok-group input { width: 40px; font-size: 13px; }
+}
+
+/* ═══ THEME PICKER ═══ */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.theme-option {
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 10px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+.theme-option:active { transform: scale(0.95); }
+.theme-option.current { border-color: #58a6ff; }
+.theme-preview {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    margin-bottom: 6px;
+    height: 18px;
+    align-items: center;
+}
+.theme-swatch {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid rgba(128,128,128,0.35);
+    flex-shrink: 0;
+}
+.theme-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #e6edf3;
+}
+body.light .theme-option { background: #f6f8fa; border-color: #d0d7de; }
+body.light .theme-option.current { border-color: #0969da; }
+body.light .theme-name { color: #1f2328; }
+
+/* ═══ THEME: OCEAN ═══ */
+body.theme-ocean { background: #041020; color: #d0e8ff; }
+body.theme-ocean header { background: #061a30; border-bottom-color: #1a3d5c; }
+body.theme-ocean header .title { color: #d0e8ff; }
+body.theme-ocean header .title span { color: #00d4ff; }
+body.theme-ocean .header-btn { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .search-input { background: #081e34; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .search-input::placeholder { color: #4d7fa3; }
+body.theme-ocean .chip { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .chip.active { background: #0088cc; border-color: #0088cc; color: #fff; }
+body.theme-ocean .loc-card { background: #081e34; border-color: #1a4d7a; }
+body.theme-ocean .loc-icon { background: #0a2a48; color: #00d4ff; }
+body.theme-ocean .item, body.theme-ocean .data-item, body.theme-ocean .belanja-item { background: #081e34; border-color: #1a4d7a; }
+body.theme-ocean .stok-group, body.theme-ocean .data-item-btn { background: #0a2a48; border-color: #1a4d7a; }
+body.theme-ocean .stok-group input { color: #00d4ff; }
+body.theme-ocean .bottom-nav, body.theme-ocean .bottom-bar { background: #061a30; border-top-color: #1a3d5c; }
+body.theme-ocean .nav-btn { color: #6aa5d0; }
+body.theme-ocean .nav-btn.active { color: #00d4ff; }
+body.theme-ocean .btn { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .btn-primary { background: #0088cc; border-color: #0088cc; color: #fff; }
+body.theme-ocean .form-input { background: #081e34; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .form-input::placeholder { color: #4d7fa3; }
+body.theme-ocean .modal-content { background: #081e34; border-color: #1a4d7a; }
+body.theme-ocean .modal-header { color: #00d4ff; border-bottom-color: #1a3d5c; }
+body.theme-ocean .menu-item { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .calc-row { background: #081e34; border-color: #1a4d7a; }
+body.theme-ocean .calc-row .c-nama, body.theme-ocean .calc-row .c-num { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean .share-text { background: #041020; border-color: #1a4d7a; color: #00d4ff; }
+body.theme-ocean .item-merek, body.theme-ocean .item-kode, body.theme-ocean .item-meta, body.theme-ocean .stok-ro, body.theme-ocean .loc-meta, body.theme-ocean .form-label { color: #6aa5d0; }
+body.theme-ocean .item-keterangan { color: #00d4ff; border-left-color: #00d4ff; }
+body.theme-ocean .table-wrap { background: #081e34; border-color: #1a4d7a; }
+body.theme-ocean .data-table th { background: #0a2a48; color: #6aa5d0; border-bottom-color: #1a4d7a; }
+body.theme-ocean .data-table td { border-bottom-color: #0a2a48; color: #d0e8ff; }
+body.theme-ocean .col-kode, body.theme-ocean .col-merek { color: #6aa5d0; }
+body.theme-ocean .stok-input-tbl { background: #0a2a48; border-color: #1a4d7a; color: #00d4ff; }
+body.theme-ocean .qty-input-tbl { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); color: #00d4ff; }
+body.theme-ocean #toast { background: #0a2a48; border-color: #1a4d7a; color: #d0e8ff; }
+body.theme-ocean #keteranganContent { color: #d0e8ff; }
+body.theme-ocean .theme-option { background: #0a2a48; border-color: #1a4d7a; }
+body.theme-ocean .theme-option.current { border-color: #00d4ff; }
+body.theme-ocean .theme-name { color: #d0e8ff; }
+
+/* ═══ THEME: FOREST ═══ */
+body.theme-forest { background: #0a1a0a; color: #d4f5d8; }
+body.theme-forest header { background: #051405; border-bottom-color: #1f4a24; }
+body.theme-forest header .title { color: #d4f5d8; }
+body.theme-forest header .title span { color: #4ade80; }
+body.theme-forest .header-btn { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .search-input { background: #0f2610; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .search-input::placeholder { color: #5a8f63; }
+body.theme-forest .chip { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .chip.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+body.theme-forest .loc-card { background: #0f2610; border-color: #1f4a24; }
+body.theme-forest .loc-icon { background: #143518; color: #4ade80; }
+body.theme-forest .item, body.theme-forest .data-item, body.theme-forest .belanja-item { background: #0f2610; border-color: #1f4a24; }
+body.theme-forest .stok-group, body.theme-forest .data-item-btn { background: #143518; border-color: #1f4a24; }
+body.theme-forest .stok-group input { color: #4ade80; }
+body.theme-forest .bottom-nav, body.theme-forest .bottom-bar { background: #051405; border-top-color: #1f4a24; }
+body.theme-forest .nav-btn { color: #6ea075; }
+body.theme-forest .nav-btn.active { color: #4ade80; }
+body.theme-forest .btn { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .btn-primary { background: #16a34a; border-color: #16a34a; color: #fff; }
+body.theme-forest .form-input { background: #0f2610; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .form-input::placeholder { color: #5a8f63; }
+body.theme-forest .modal-content { background: #0f2610; border-color: #1f4a24; }
+body.theme-forest .modal-header { color: #4ade80; border-bottom-color: #1f4a24; }
+body.theme-forest .menu-item { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .calc-row { background: #0f2610; border-color: #1f4a24; }
+body.theme-forest .calc-row .c-nama, body.theme-forest .calc-row .c-num { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest .share-text { background: #0a1a0a; border-color: #1f4a24; color: #4ade80; }
+body.theme-forest .item-merek, body.theme-forest .item-kode, body.theme-forest .item-meta, body.theme-forest .stok-ro, body.theme-forest .loc-meta, body.theme-forest .form-label { color: #6ea075; }
+body.theme-forest .item-keterangan { color: #4ade80; border-left-color: #4ade80; }
+body.theme-forest .table-wrap { background: #0f2610; border-color: #1f4a24; }
+body.theme-forest .data-table th { background: #143518; color: #6ea075; border-bottom-color: #1f4a24; }
+body.theme-forest .data-table td { border-bottom-color: #143518; color: #d4f5d8; }
+body.theme-forest .col-kode, body.theme-forest .col-merek { color: #6ea075; }
+body.theme-forest .stok-input-tbl { background: #143518; border-color: #1f4a24; color: #4ade80; }
+body.theme-forest .qty-input-tbl { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+body.theme-forest #toast { background: #143518; border-color: #1f4a24; color: #d4f5d8; }
+body.theme-forest #keteranganContent { color: #d4f5d8; }
+body.theme-forest .theme-option { background: #143518; border-color: #1f4a24; }
+body.theme-forest .theme-option.current { border-color: #4ade80; }
+body.theme-forest .theme-name { color: #d4f5d8; }
+
+/* ═══ THEME: SUNSET ═══ */
+body.theme-sunset { background: #1a0a05; color: #ffd9c2; }
+body.theme-sunset header { background: #140502; border-bottom-color: #5a2a1a; }
+body.theme-sunset header .title { color: #ffd9c2; }
+body.theme-sunset header .title span { color: #ff8844; }
+body.theme-sunset .header-btn { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .search-input { background: #26100a; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .search-input::placeholder { color: #a06a55; }
+body.theme-sunset .chip { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .chip.active { background: #e65516; border-color: #e65516; color: #fff; }
+body.theme-sunset .loc-card { background: #26100a; border-color: #5a2a1a; }
+body.theme-sunset .loc-icon { background: #351a12; color: #ff8844; }
+body.theme-sunset .item, body.theme-sunset .data-item, body.theme-sunset .belanja-item { background: #26100a; border-color: #5a2a1a; }
+body.theme-sunset .stok-group, body.theme-sunset .data-item-btn { background: #351a12; border-color: #5a2a1a; }
+body.theme-sunset .stok-group input { color: #ff8844; }
+body.theme-sunset .bottom-nav, body.theme-sunset .bottom-bar { background: #140502; border-top-color: #5a2a1a; }
+body.theme-sunset .nav-btn { color: #b07755; }
+body.theme-sunset .nav-btn.active { color: #ff8844; }
+body.theme-sunset .btn { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .btn-primary { background: #e65516; border-color: #e65516; color: #fff; }
+body.theme-sunset .form-input { background: #26100a; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .form-input::placeholder { color: #a06a55; }
+body.theme-sunset .modal-content { background: #26100a; border-color: #5a2a1a; }
+body.theme-sunset .modal-header { color: #ff8844; border-bottom-color: #5a2a1a; }
+body.theme-sunset .menu-item { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .calc-row { background: #26100a; border-color: #5a2a1a; }
+body.theme-sunset .calc-row .c-nama, body.theme-sunset .calc-row .c-num { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset .share-text { background: #1a0a05; border-color: #5a2a1a; color: #ff8844; }
+body.theme-sunset .item-merek, body.theme-sunset .item-kode, body.theme-sunset .item-meta, body.theme-sunset .stok-ro, body.theme-sunset .loc-meta, body.theme-sunset .form-label { color: #b07755; }
+body.theme-sunset .item-keterangan { color: #ff8844; border-left-color: #ff8844; }
+body.theme-sunset .table-wrap { background: #26100a; border-color: #5a2a1a; }
+body.theme-sunset .data-table th { background: #351a12; color: #b07755; border-bottom-color: #5a2a1a; }
+body.theme-sunset .data-table td { border-bottom-color: #351a12; color: #ffd9c2; }
+body.theme-sunset .col-kode, body.theme-sunset .col-merek { color: #b07755; }
+body.theme-sunset .stok-input-tbl { background: #351a12; border-color: #5a2a1a; color: #ff8844; }
+body.theme-sunset .qty-input-tbl { background: rgba(255,136,68,0.12); border-color: rgba(255,136,68,0.3); color: #ff8844; }
+body.theme-sunset #toast { background: #351a12; border-color: #5a2a1a; color: #ffd9c2; }
+body.theme-sunset #keteranganContent { color: #ffd9c2; }
+body.theme-sunset .theme-option { background: #351a12; border-color: #5a2a1a; }
+body.theme-sunset .theme-option.current { border-color: #ff8844; }
+body.theme-sunset .theme-name { color: #ffd9c2; }
+
+/* ═══ THEME: MIDNIGHT ═══ */
+body.theme-midnight { background: #10051a; color: #e6d4ff; }
+body.theme-midnight header { background: #0a0412; border-bottom-color: #3d1f55; }
+body.theme-midnight header .title { color: #e6d4ff; }
+body.theme-midnight header .title span { color: #d946ef; }
+body.theme-midnight .header-btn { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .search-input { background: #1a0a28; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .search-input::placeholder { color: #8066a3; }
+body.theme-midnight .chip { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .chip.active { background: #a21caf; border-color: #a21caf; color: #fff; }
+body.theme-midnight .loc-card { background: #1a0a28; border-color: #3d1f55; }
+body.theme-midnight .loc-icon { background: #251535; color: #d946ef; }
+body.theme-midnight .item, body.theme-midnight .data-item, body.theme-midnight .belanja-item { background: #1a0a28; border-color: #3d1f55; }
+body.theme-midnight .stok-group, body.theme-midnight .data-item-btn { background: #251535; border-color: #3d1f55; }
+body.theme-midnight .stok-group input { color: #d946ef; }
+body.theme-midnight .bottom-nav, body.theme-midnight .bottom-bar { background: #0a0412; border-top-color: #3d1f55; }
+body.theme-midnight .nav-btn { color: #9575b0; }
+body.theme-midnight .nav-btn.active { color: #d946ef; }
+body.theme-midnight .btn { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .btn-primary { background: #a21caf; border-color: #a21caf; color: #fff; }
+body.theme-midnight .form-input { background: #1a0a28; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .form-input::placeholder { color: #8066a3; }
+body.theme-midnight .modal-content { background: #1a0a28; border-color: #3d1f55; }
+body.theme-midnight .modal-header { color: #d946ef; border-bottom-color: #3d1f55; }
+body.theme-midnight .menu-item { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .calc-row { background: #1a0a28; border-color: #3d1f55; }
+body.theme-midnight .calc-row .c-nama, body.theme-midnight .calc-row .c-num { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight .share-text { background: #10051a; border-color: #3d1f55; color: #d946ef; }
+body.theme-midnight .item-merek, body.theme-midnight .item-kode, body.theme-midnight .item-meta, body.theme-midnight .stok-ro, body.theme-midnight .loc-meta, body.theme-midnight .form-label { color: #9575b0; }
+body.theme-midnight .item-keterangan { color: #d946ef; border-left-color: #d946ef; }
+body.theme-midnight .table-wrap { background: #1a0a28; border-color: #3d1f55; }
+body.theme-midnight .data-table th { background: #251535; color: #9575b0; border-bottom-color: #3d1f55; }
+body.theme-midnight .data-table td { border-bottom-color: #251535; color: #e6d4ff; }
+body.theme-midnight .col-kode, body.theme-midnight .col-merek { color: #9575b0; }
+body.theme-midnight .stok-input-tbl { background: #251535; border-color: #3d1f55; color: #d946ef; }
+body.theme-midnight .qty-input-tbl { background: rgba(217,70,239,0.12); border-color: rgba(217,70,239,0.3); color: #d946ef; }
+body.theme-midnight #toast { background: #251535; border-color: #3d1f55; color: #e6d4ff; }
+body.theme-midnight #keteranganContent { color: #e6d4ff; }
+body.theme-midnight .theme-option { background: #251535; border-color: #3d1f55; }
+body.theme-midnight .theme-option.current { border-color: #d946ef; }
+body.theme-midnight .theme-name { color: #e6d4ff; }
+
+/* ═══ THEME: ROSE ═══ */
+body.theme-rose { background: #1a0a10; color: #ffd6e0; }
+body.theme-rose header { background: #10050a; border-bottom-color: #4d1f2c; }
+body.theme-rose header .title { color: #ffd6e0; }
+body.theme-rose header .title span { color: #fb7185; }
+body.theme-rose .header-btn { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .search-input { background: #261018; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .search-input::placeholder { color: #a06080; }
+body.theme-rose .chip { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .chip.active { background: #e11d48; border-color: #e11d48; color: #fff; }
+body.theme-rose .loc-card { background: #261018; border-color: #4d1f2c; }
+body.theme-rose .loc-icon { background: #351520; color: #fb7185; }
+body.theme-rose .item, body.theme-rose .data-item, body.theme-rose .belanja-item { background: #261018; border-color: #4d1f2c; }
+body.theme-rose .stok-group, body.theme-rose .data-item-btn { background: #351520; border-color: #4d1f2c; }
+body.theme-rose .stok-group input { color: #fb7185; }
+body.theme-rose .bottom-nav, body.theme-rose .bottom-bar { background: #10050a; border-top-color: #4d1f2c; }
+body.theme-rose .nav-btn { color: #a06080; }
+body.theme-rose .nav-btn.active { color: #fb7185; }
+body.theme-rose .btn { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .btn-primary { background: #e11d48; border-color: #e11d48; color: #fff; }
+body.theme-rose .form-input { background: #261018; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .form-input::placeholder { color: #a06080; }
+body.theme-rose .modal-content { background: #261018; border-color: #4d1f2c; }
+body.theme-rose .modal-header { color: #fb7185; border-bottom-color: #4d1f2c; }
+body.theme-rose .menu-item { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .calc-row { background: #261018; border-color: #4d1f2c; }
+body.theme-rose .calc-row .c-nama, body.theme-rose .calc-row .c-num { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose .share-text { background: #1a0a10; border-color: #4d1f2c; color: #fb7185; }
+body.theme-rose .item-merek, body.theme-rose .item-kode, body.theme-rose .item-meta, body.theme-rose .stok-ro, body.theme-rose .loc-meta, body.theme-rose .form-label { color: #a06080; }
+body.theme-rose .item-keterangan { color: #fb7185; border-left-color: #fb7185; }
+body.theme-rose .table-wrap { background: #261018; border-color: #4d1f2c; }
+body.theme-rose .data-table th { background: #351520; color: #a06080; border-bottom-color: #4d1f2c; }
+body.theme-rose .data-table td { border-bottom-color: #351520; color: #ffd6e0; }
+body.theme-rose .col-kode, body.theme-rose .col-merek { color: #a06080; }
+body.theme-rose .stok-input-tbl { background: #351520; border-color: #4d1f2c; color: #fb7185; }
+body.theme-rose .qty-input-tbl { background: rgba(251,113,133,0.12); border-color: rgba(251,113,133,0.3); color: #fb7185; }
+body.theme-rose #toast { background: #351520; border-color: #4d1f2c; color: #ffd6e0; }
+body.theme-rose #keteranganContent { color: #ffd6e0; }
+body.theme-rose .theme-option { background: #351520; border-color: #4d1f2c; }
+body.theme-rose .theme-option.current { border-color: #fb7185; }
+body.theme-rose .theme-name { color: #ffd6e0; }
+
+/* ═══ THEME: CYBERPUNK ═══ */
+body.theme-cyberpunk { background: #050505; color: #e0e0ff; }
+body.theme-cyberpunk header { background: #000; border-bottom-color: #1a1a2e; }
+body.theme-cyberpunk header .title { color: #e0e0ff; }
+body.theme-cyberpunk header .title span { color: #ff00ff; }
+body.theme-cyberpunk .header-btn { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .search-input { background: #0a0a15; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .search-input::placeholder { color: #6666aa; }
+body.theme-cyberpunk .chip { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .chip.active { background: #00ffff; border-color: #00ffff; color: #000; }
+body.theme-cyberpunk .loc-card { background: #0a0a15; border-color: #2a2a4a; }
+body.theme-cyberpunk .loc-icon { background: #151525; color: #00ffff; }
+body.theme-cyberpunk .item, body.theme-cyberpunk .data-item, body.theme-cyberpunk .belanja-item { background: #0a0a15; border-color: #2a2a4a; }
+body.theme-cyberpunk .stok-group, body.theme-cyberpunk .data-item-btn { background: #151525; border-color: #2a2a4a; }
+body.theme-cyberpunk .stok-group input { color: #00ffff; }
+body.theme-cyberpunk .bottom-nav, body.theme-cyberpunk .bottom-bar { background: #000; border-top-color: #1a1a2e; }
+body.theme-cyberpunk .nav-btn { color: #6666aa; }
+body.theme-cyberpunk .nav-btn.active { color: #ff00ff; }
+body.theme-cyberpunk .btn { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .btn-primary { background: #ff00ff; border-color: #ff00ff; color: #000; }
+body.theme-cyberpunk .form-input { background: #0a0a15; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .form-input::placeholder { color: #6666aa; }
+body.theme-cyberpunk .modal-content { background: #0a0a15; border-color: #2a2a4a; }
+body.theme-cyberpunk .modal-header { color: #00ffff; border-bottom-color: #1a1a2e; }
+body.theme-cyberpunk .menu-item { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .calc-row { background: #0a0a15; border-color: #2a2a4a; }
+body.theme-cyberpunk .calc-row .c-nama, body.theme-cyberpunk .calc-row .c-num { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk .share-text { background: #050505; border-color: #2a2a4a; color: #00ffff; }
+body.theme-cyberpunk .item-merek, body.theme-cyberpunk .item-kode, body.theme-cyberpunk .item-meta, body.theme-cyberpunk .stok-ro, body.theme-cyberpunk .loc-meta, body.theme-cyberpunk .form-label { color: #6666aa; }
+body.theme-cyberpunk .item-keterangan { color: #00ffff; border-left-color: #00ffff; }
+body.theme-cyberpunk .table-wrap { background: #0a0a15; border-color: #2a2a4a; }
+body.theme-cyberpunk .data-table th { background: #151525; color: #6666aa; border-bottom-color: #2a2a4a; }
+body.theme-cyberpunk .data-table td { border-bottom-color: #151525; color: #e0e0ff; }
+body.theme-cyberpunk .col-kode, body.theme-cyberpunk .col-merek { color: #6666aa; }
+body.theme-cyberpunk .stok-input-tbl { background: #151525; border-color: #2a2a4a; color: #00ffff; }
+body.theme-cyberpunk .qty-input-tbl { background: rgba(0,255,255,0.12); border-color: rgba(0,255,255,0.3); color: #00ffff; }
+body.theme-cyberpunk #toast { background: #151525; border-color: #2a2a4a; color: #e0e0ff; }
+body.theme-cyberpunk #keteranganContent { color: #e0e0ff; }
+body.theme-cyberpunk .theme-option { background: #151525; border-color: #2a2a4a; }
+body.theme-cyberpunk .theme-option.current { border-color: #00ffff; }
+body.theme-cyberpunk .theme-name { color: #e0e0ff; }
+
+/* ═══ THEME: COFFEE ═══ */
+body.theme-coffee { background: #1a1310; color: #f5debe; }
+body.theme-coffee header { background: #100b08; border-bottom-color: #4a3426; }
+body.theme-coffee header .title { color: #f5debe; }
+body.theme-coffee header .title span { color: #d4a574; }
+body.theme-coffee .header-btn { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .search-input { background: #241a14; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .search-input::placeholder { color: #8a6a50; }
+body.theme-coffee .chip { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .chip.active { background: #a0683c; border-color: #a0683c; color: #fff; }
+body.theme-coffee .loc-card { background: #241a14; border-color: #4a3426; }
+body.theme-coffee .loc-icon { background: #2f2117; color: #d4a574; }
+body.theme-coffee .item, body.theme-coffee .data-item, body.theme-coffee .belanja-item { background: #241a14; border-color: #4a3426; }
+body.theme-coffee .stok-group, body.theme-coffee .data-item-btn { background: #2f2117; border-color: #4a3426; }
+body.theme-coffee .stok-group input { color: #d4a574; }
+body.theme-coffee .bottom-nav, body.theme-coffee .bottom-bar { background: #100b08; border-top-color: #4a3426; }
+body.theme-coffee .nav-btn { color: #8a6a50; }
+body.theme-coffee .nav-btn.active { color: #d4a574; }
+body.theme-coffee .btn { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .btn-primary { background: #a0683c; border-color: #a0683c; color: #fff; }
+body.theme-coffee .form-input { background: #241a14; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .form-input::placeholder { color: #8a6a50; }
+body.theme-coffee .modal-content { background: #241a14; border-color: #4a3426; }
+body.theme-coffee .modal-header { color: #d4a574; border-bottom-color: #4a3426; }
+body.theme-coffee .menu-item { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .calc-row { background: #241a14; border-color: #4a3426; }
+body.theme-coffee .calc-row .c-nama, body.theme-coffee .calc-row .c-num { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee .share-text { background: #1a1310; border-color: #4a3426; color: #d4a574; }
+body.theme-coffee .item-merek, body.theme-coffee .item-kode, body.theme-coffee .item-meta, body.theme-coffee .stok-ro, body.theme-coffee .loc-meta, body.theme-coffee .form-label { color: #8a6a50; }
+body.theme-coffee .item-keterangan { color: #d4a574; border-left-color: #d4a574; }
+body.theme-coffee .table-wrap { background: #241a14; border-color: #4a3426; }
+body.theme-coffee .data-table th { background: #2f2117; color: #8a6a50; border-bottom-color: #4a3426; }
+body.theme-coffee .data-table td { border-bottom-color: #2f2117; color: #f5debe; }
+body.theme-coffee .col-kode, body.theme-coffee .col-merek { color: #8a6a50; }
+body.theme-coffee .stok-input-tbl { background: #2f2117; border-color: #4a3426; color: #d4a574; }
+body.theme-coffee .qty-input-tbl { background: rgba(212,165,116,0.12); border-color: rgba(212,165,116,0.3); color: #d4a574; }
+body.theme-coffee #toast { background: #2f2117; border-color: #4a3426; color: #f5debe; }
+body.theme-coffee #keteranganContent { color: #f5debe; }
+body.theme-coffee .theme-option { background: #2f2117; border-color: #4a3426; }
+body.theme-coffee .theme-option.current { border-color: #d4a574; }
+body.theme-coffee .theme-name { color: #f5debe; }
+
+/* ═══ THEME: SKY ═══ */
+body.theme-sky { background: #0a1622; color: #d4e8f7; }
+body.theme-sky header { background: #05101a; border-bottom-color: #1e3a5f; }
+body.theme-sky header .title { color: #d4e8f7; }
+body.theme-sky header .title span { color: #38bdf8; }
+body.theme-sky .header-btn { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .search-input { background: #0f1e2e; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .search-input::placeholder { color: #6a8fa8; }
+body.theme-sky .chip { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .chip.active { background: #0284c7; border-color: #0284c7; color: #fff; }
+body.theme-sky .loc-card { background: #0f1e2e; border-color: #1e3a5f; }
+body.theme-sky .loc-icon { background: #16293d; color: #38bdf8; }
+body.theme-sky .item, body.theme-sky .data-item, body.theme-sky .belanja-item { background: #0f1e2e; border-color: #1e3a5f; }
+body.theme-sky .stok-group, body.theme-sky .data-item-btn { background: #16293d; border-color: #1e3a5f; }
+body.theme-sky .stok-group input { color: #38bdf8; }
+body.theme-sky .bottom-nav, body.theme-sky .bottom-bar { background: #05101a; border-top-color: #1e3a5f; }
+body.theme-sky .nav-btn { color: #6a8fa8; }
+body.theme-sky .nav-btn.active { color: #38bdf8; }
+body.theme-sky .btn { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .btn-primary { background: #0284c7; border-color: #0284c7; color: #fff; }
+body.theme-sky .form-input { background: #0f1e2e; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .form-input::placeholder { color: #6a8fa8; }
+body.theme-sky .modal-content { background: #0f1e2e; border-color: #1e3a5f; }
+body.theme-sky .modal-header { color: #38bdf8; border-bottom-color: #1e3a5f; }
+body.theme-sky .menu-item { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .calc-row { background: #0f1e2e; border-color: #1e3a5f; }
+body.theme-sky .calc-row .c-nama, body.theme-sky .calc-row .c-num { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky .share-text { background: #0a1622; border-color: #1e3a5f; color: #38bdf8; }
+body.theme-sky .item-merek, body.theme-sky .item-kode, body.theme-sky .item-meta, body.theme-sky .stok-ro, body.theme-sky .loc-meta, body.theme-sky .form-label { color: #6a8fa8; }
+body.theme-sky .item-keterangan { color: #38bdf8; border-left-color: #38bdf8; }
+body.theme-sky .table-wrap { background: #0f1e2e; border-color: #1e3a5f; }
+body.theme-sky .data-table th { background: #16293d; color: #6a8fa8; border-bottom-color: #1e3a5f; }
+body.theme-sky .data-table td { border-bottom-color: #16293d; color: #d4e8f7; }
+body.theme-sky .col-kode, body.theme-sky .col-merek { color: #6a8fa8; }
+body.theme-sky .stok-input-tbl { background: #16293d; border-color: #1e3a5f; color: #38bdf8; }
+body.theme-sky .qty-input-tbl { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color: #38bdf8; }
+body.theme-sky #toast { background: #16293d; border-color: #1e3a5f; color: #d4e8f7; }
+body.theme-sky #keteranganContent { color: #d4e8f7; }
+body.theme-sky .theme-option { background: #16293d; border-color: #1e3a5f; }
+body.theme-sky .theme-option.current { border-color: #38bdf8; }
+body.theme-sky .theme-name { color: #d4e8f7; }
+
+.drive-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.drive-status.on { background: rgba(35,134,54,0.2); color: #4ade80; }
+.drive-status.off { background: rgba(125,133,144,0.2); color: #7d8590; }
+#driveLastSync { font-size: 11px; color: #7d8590; }
+
+/* ═══ SYNC INDICATOR ═══ */
+.sync-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-left: 5px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.sync-dot.pending { background: #d29922; animation: syncPulse 1.2s infinite; }
+.sync-dot.syncing { background: #58a6ff; animation: syncPulse 0.8s infinite; }
+.sync-dot.synced  { background: #4ade80; }
+.sync-dot.error   { background: #da3633; }
+@keyframes syncPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+/* ═══ SEARCH INFO BAR ═══ */
+.search-info {
+    display: none;
+    align-items: center;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: rgba(210,153,34,0.08);
+    border-left: 3px solid #d29922;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #d29922;
+    gap: 8px;
+}
+.search-info.show { display: flex; }
+.search-info label {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    color: #e6edf3;
+}
+.search-info input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: #1f6feb;
+    cursor: pointer;
+}
+body.light .search-info { background: rgba(180,120,20,0.08); color: #b35900; }
+body.light .search-info label { color: #1f2328; }
+
+/* ═══ DIMMED ROW (non-matching) ═══ */
+.data-table tr.dimmed .col-nama,
+.data-table tr.dimmed .col-kode,
+.data-table tr.dimmed .col-merek {
+    opacity: 0.4;
+}
+.data-table tr.dimmed .col-nama .sub-ket {
+    opacity: 0.7;
+}
+
+/* ═══ DIVIDER ROW ═══ */
+.data-table tr.divider td {
+    padding: 6px 8px !important;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #7d8590;
+    background: rgba(125,133,144,0.08);
+    border-top: 1px solid #30363d;
+    border-bottom: 1px solid #30363d;
+    font-weight: 600;
+}
+
+/* ═══ HIGHLIGHT MATCH ═══ */
+.data-table mark {
+    background: rgba(210,153,34,0.45);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: inherit;
+}
+
+/* ═══ DONASI ═══ */
+.donasi-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    border: 1px solid #be123c;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.15s;
+}
+.donasi-btn:active { transform: scale(0.97); }
+.donasi-btn .donasi-icon { font-size: 20px; flex-shrink: 0; }
+.donasi-btn .donasi-body { flex: 1; text-align: left; }
+.donasi-btn .donasi-sub { font-size: 10px; opacity: 0.85; font-weight: 400; margin-top: 2px; }
+
+.donasi-qris {
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    color: #000;
+}
+.donasi-qris img { max-width: 100%; border-radius: 4px; }
+.donasi-qris .donasi-bank-info {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f6f8fa;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: left;
+}
+.donasi-bank-info .donasi-norek {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0969da;
+    margin: 4px 0;
+    user-select: text;
+}
+
+/* ═══ DONASI REMINDER BANNER ═══ */
+.donasi-banner {
+    position: fixed;
+    bottom: 78px;
+    left: 50%;
+    transform: translateX(-50%) translateY(200%);
+    width: calc(100% - 24px);
+    max-width: 460px;
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(225,29,72,0.45);
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.donasi-banner.show { transform: translateX(-50%) translateY(0); }
+.donasi-banner-text { flex: 1; font-size: 12px; line-height: 1.4; min-width: 0; }
+.donasi-banner-text b { font-size: 13px; display: block; margin-bottom: 2px; }
+.donasi-banner-text span { opacity: 0.85; font-size: 11px; }
+.donasi-banner-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.donasi-banner .btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
+    min-width: auto;
+}
+.donasi-banner .btn-primary {
+    background: #fff;
+    border-color: #fff;
+    color: #be123c;
+    font-weight: 700;
+}
+
+/* ═══ SCAN BARCODE ═══ */
+#scanContainer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+#scanVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+#scanOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#scanBox {
+    width: 75%;
+    height: 40%;
+    border: 2px solid #00ffcc;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+}
+#scanBox::before, #scanBox::after {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: #00ffcc;
+    border-style: solid;
+}
+#scanBox::before {
+    top: -2px; left: -2px;
+    border-width: 3px 0 0 3px;
+    border-radius: 8px 0 0 0;
+}
+#scanBox::after {
+    bottom: -2px; right: -2px;
+    border-width: 0 3px 3px 0;
+    border-radius: 0 0 8px 0;
+}
+#scanLine {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffcc, transparent);
+    animation: scanMove 2s infinite;
+    box-shadow: 0 0 6px #00ffcc;
+}
+@keyframes scanMove {
+    0%, 100% { top: 8%; }
+    50% { top: 92%; }
+}
+#scanStatus {
+    text-align: center;
+    font-size: 12px;
+    color: #7d8590;
+    padding: 8px;
+    line-height: 1.5;
+    min-height: 36px;
+}
+#scanStatus.ok { color: #4ade80; font-weight: 600; }
+#scanStatus.err { color: #da3633; font-weight: 600; }
+#scanStatus.warn { color: #d29922; }
+
+.btn-scan {
+    flex: 0 0 auto !important;
+    padding: 10px 14px !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+}
+
+/* ═══════════════════════════════════════════════
+   UI ANIMATIONS (Fase 1 + 2)
+   Simple, subtle, native-feel
+   ═══════════════════════════════════════════════ */
+
+/* ─── Keyframes ─── */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes viewIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes checkboxPop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+/* ─── 1. Tombol: feedback tekan ─── */
+.btn,
+.header-btn,
+.nav-btn,
+.data-item-btn,
+.modal-close,
+.chip,
+.theme-option,
+.btn-tool,
+.icon-btn,
+.tab-btn,
+.menu-item,
+.loc-card,
+.donasi-btn {
+    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.15s ease,
+                border-color 0.15s ease,
+                color 0.15s ease,
+                box-shadow 0.15s ease;
+}
+.btn:active,
+.header-btn:active,
+.data-item-btn:active,
+.chip:active,
+.theme-option:active,
+.btn-tool:active,
+.icon-btn:active,
+.menu-item:active,
+.loc-card:active,
+.donasi-btn:active {
+    transform: scale(0.96);
+}
+.nav-btn .icon { transition: transform 0.15s ease; }
+.nav-btn:active .icon { transform: scale(0.88); }
+
+/* ─── 2. Modal: slide up dari bawah ─── */
+.modal.active .modal-content {
+    animation: slideUp 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 3. Checkbox: pop saat dicentang ─── */
+input[type="checkbox"] {
+    transition: transform 0.15s ease;
+}
+input[type="checkbox"]:checked {
+    animation: checkboxPop 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 4. View: fade + slide saat ganti layar ─── */
+.view.active {
+    animation: viewIn 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 5. Warna status: transisi halus ─── */
+.data-table tr,
+.item,
+.belanja-item,
+.data-item,
+.sync-dot,
+.loc-meta b {
+    transition: background-color 0.35s ease,
+                border-left-color 0.35s ease,
+                opacity 0.25s ease;
+}
+
+/* ─── 6. Search info bar: slide in ─── */
+.search-info.show {
+    display: flex;
+    animation: slideDown 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 7. Bottom bar (keranjang): slide up ─── */
+body.has-selection .bottom-bar {
+    display: flex;
+    animation: slideUp 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 8. Chip active: subtle pop ─── */
+.chip.active {
+    animation: checkboxPop 0.24s ease;
+}
+
+/* ─── 9. Input focus: transisi halus ─── */
+.form-input,
+.search-input,
+.stok-input-tbl,
+.qty-input-tbl {
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background-color 0.2s ease;
+}
+
+/* ─── 10. Empty state: fade in ─── */
+.empty {
+    animation: fadeIn 0.28s ease;
+}
+
+/* ─── 11. Theme option: preview hover ─── */
+.theme-option .theme-swatch {
+    transition: transform 0.2s ease;
+}
+.theme-option:active .theme-swatch {
+    transform: scale(0.9);
+}
+
+/* ─── 12. Sub-ket clickable: subtle pulse ─── */
+.sub-ket {
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.sub-ket:active {
+    transform: scale(0.98);
+}
+
+/* ─── 13. Lokasi card: subtle lift on hover (desktop) ─── */
+@media (hover: hover) {
+    .loc-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+}
+
+/* ─── 14. Reduced motion: patuhi setting OS ─── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .btn:active,
+    .header-btn:active,
+    .chip:active,
+    .data-item-btn:active,
+    .menu-item:active,
+    .loc-card:active {
+        transform: none;
+    }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="left">
+        <button class="header-btn hidden" id="btnBack" title="Kembali">←</button>
+        <div class="title" id="appTitle">📔 Stok<span>Ku</span></div>
+        <span id="syncDot" class="sync-dot" style="display:none" title="Status sync"></span>
+    </div>
+    <div class="header-actions">
+        <button class="header-btn" id="btnTheme" title="Tema">🎨</button>
+        <button class="header-btn" id="btnMenu" title="Menu">☰</button>
+    </div>
+</header>
+
+<main>
+
+    <!-- VIEW LOKASI -->
+    <section class="view active" id="view-lokasi">
+        <div class="toolbar">
+            <button class="btn btn-primary" id="btnAddLokasi" style="flex:1">+ Lokasi Baru</button>
+        </div>
+        <div id="lokasiList"></div>
+    </section>
+
+    <!-- VIEW BERANDA (HANYA LIHAT STOK, TANPA EDIT) -->
+    <section class="view" id="view-beranda">
+        <div class="toolbar">
+            <input type="search" class="search-input" id="searchBeranda" placeholder="🔍 Cari nama, kode, merek, keterangan...">
+            <button type="button" class="btn btn-scan" id="btnScanBeranda" title="Scan Barcode">📷</button>
+        </div>
+        <div class="search-info" id="searchInfo">
+            <span>🔍 <b id="searchCount">0</b> cocok</span>
+            <label>
+                <input type="checkbox" id="searchStrict">
+                <span>Hanya cocok</span>
+            </label>
+        </div>
+        <div class="chip-strip" id="chipRow">
+            <button class="chip active" data-filter="all">Semua</button>
+            <button class="chip" data-filter="red">🔴 Perlu</button>
+            <button class="chip" data-filter="yellow">🟡 Siap</button>
+            <button class="chip" data-filter="green">🟢 Aman</button>
+            <button class="chip" data-filter="grey">⚪ Belum</button>
+        </div>
+        <div id="berandaList"></div>
+    </section>
+
+    <!-- VIEW DATA BARANG (MANAJEMEN) -->
+    <section class="view" id="view-data-barang">
+        <div class="toolbar">
+            <button class="btn btn-primary" id="btnAddBarang" style="flex:1">+ Tambah Barang</button>
+            <button class="btn" id="btnUploadDrive" title="Upload ke Drive">☁</button>
+        </div>
+        <div class="toolbar">
+            <input type="search" class="search-input" id="searchDataBarang" placeholder="🔍 Cari barang...">
+        </div>
+        <div id="dataBarangList"></div>
+    </section>
+
+    <!-- VIEW FORM BARANG -->
+    <section class="view" id="view-form">
+        <form id="formBarang">
+            <input type="hidden" id="fId">
+            <div class="form-field">
+                <label class="form-label">Kode Barang *</label>
+                <div style="display:flex;gap:6px">
+                    <input type="text" class="form-input" id="fKode" required placeholder="cth: SBN-01">
+                    <button type="button" class="btn btn-scan" id="btnScanKode" title="Scan Barcode">📷</button>
+                </div>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Nama Barang *</label>
+                <input type="text" class="form-input" id="fNama" required placeholder="cth: Sabun Cuci Piring">
+            </div>
+            <div class="form-field">
+                <label class="form-label">Merek (opsional)</label>
+                <input type="text" class="form-input" id="fMerek" placeholder="cth: Sunlight">
+            </div>
+            <div class="form-field">
+                <label class="form-label">Satuan *</label>
+                <input type="text" class="form-input" id="fSatuan" required placeholder="pcs, kg, liter, lusin">
+            </div>
+            <div class="form-row-2">
+                <div class="form-field">
+                    <label class="form-label">Limit Min *</label>
+                    <input type="number" class="form-input" id="fLimit" step="0.1" min="0" required placeholder="5">
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Ambang Kuning *</label>
+                    <input type="number" class="form-input" id="fAmbang" step="0.1" min="0" required placeholder="10">
+                </div>
+            </div>
+            <div class="form-help">
+                🔴 Merah: stok ≤ limit · 🟡 Kuning: stok ≤ ambang · 🟢 Hijau: di atas ambang
+            </div>
+            <div class="form-field">
+                <label class="form-label">Keterangan / Uraian (opsional)</label>
+                <textarea class="form-input auto-grow" id="fKeterangan" rows="3" placeholder="cth: celana biru, kaos biru, baju biru — bebas panjang"></textarea>
+                <div class="form-help" style="margin-top:4px">💡 Bisa panjang. Di beranda hanya tampil 2 baris, klik teksnya untuk lihat semua.</div>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:12px">
+                <button type="submit" class="btn btn-primary" style="flex:1">💾 Simpan</button>
+                <button type="button" class="btn btn-danger" id="btnHapusBarang" style="display:none">🗑 Hapus</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- VIEW KALKULATOR -->
+    <section class="view" id="view-kalkulator">
+        <div class="toolbar">
+            <button class="btn" id="btnCalcAdd" style="flex:1">➕ Tambah Baris Manual</button>
+            <button class="btn" id="btnCalcImport" style="flex:0 0 130px">🔗 Import Kode</button>
+            <button class="btn btn-danger" id="btnCalcReset" style="flex:0 0 50px">🗑</button>
+        </div>
+        <div id="calcList"></div>
+        <div class="calc-total">
+            <span class="calc-total-label">Total</span>
+            <span class="calc-total-value" id="calcTotal">Rp 0</span>
+        </div>
+        <div style="display:flex; gap:6px">
+            <button class="btn" id="btnCalcCopy" style="flex:1">📋 Salin</button>
+            <button class="btn btn-primary" id="btnCalcWA" style="flex:1">📤 Bagikan</button>
+        </div>
+    </section>
+
+</main>
+
+<!-- BOTTOM BAR (belanja mode) -->
+<div class="bottom-bar">
+    <button class="btn btn-primary" id="btnKeranjang">🛒 Keranjang <span id="cartBadge" style="background:rgba(255,255,255,0.25);padding:2px 7px;border-radius:10px;font-size:11px;margin-left:2px">0</span></button>
+    <button class="btn" id="btnShare">📤 Share</button>
+    <button class="btn" id="btnKeKalkulator">⚖️ Kalkulator</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-tab="lokasi"><span class="icon">🏠</span>Lokasi</button>
+    <button class="nav-btn" data-tab="kalkulator"><span class="icon">⚖️</span>Kalkulator</button>
+</nav>
+
+<!-- MODAL MENU -->
+<div class="modal" id="modalMenu">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>☰ Menu</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <button class="menu-item" id="menuDrive">☁️ Google Drive Sync</button>
+        <button class="menu-item" id="menuDataBarang">📋 Data Barang</button>
+        <button class="menu-item" id="menuExport">📤 Export Data</button>
+        <button class="menu-item" id="menuImport">📥 Import Data</button>
+        <button class="menu-item" id="menuDonasi">❤️ Dukung Pengembang</button>
+        <button class="menu-item" id="menuAbout">ℹ️ Tentang Aplikasi</button>
+    </div>
+</div>
+
+<!-- MODAL SHARE -->
+<div class="modal" id="modalShare">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>📤 Bagikan Daftar</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div class="form-field">
+            <label class="form-label">Format</label>
+            <select class="form-input" id="shareFormat">
+                <option value="checklist">☐ Checklist Centang Manual (WA / Notes)</option>
+                <option value="chat">💬 Chat Bernomor (WA / Catatan)</option>
+                <option value="rapi">📋 Tabel Rapi (WA grup / Telegram)</option>
+                <option value="table">📊 Tabel Universal (Word / Docs / Excel)</option>
+                <option value="import">🔗 Kode Import (StokKu lain)</option>
+            </select>
+        </div>
+        <textarea class="share-text" id="sharePreview" rows="10"></textarea>
+        <div style="display:flex;gap:6px">
+            <button class="btn" id="btnShareCopy" style="flex:1">📋 Salin</button>
+            <button class="btn btn-primary" id="btnShareWA" style="flex:1">📤 Bagikan</button>
+        </div>
+        <button class="btn btn-block" id="btnShareCSV" style="margin-top:6px">💾 Simpan sebagai .csv (Excel)</button>
+        <button class="btn btn-block" id="btnShareTXT" style="margin-top:6px">📄 Simpan sebagai .txt (Notes)</button>
+    </div>
+</div>
+
+<!-- MODAL LOKASI -->
+<div class="modal" id="modalLokasi">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>🏠 Tambah Lokasi</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div class="form-field">
+            <label class="form-label">Nama Lokasi *</label>
+            <input type="text" class="form-input" id="newLokasiName" placeholder="cth: Rumah, Toko, Kantor">
+        </div>
+        <button class="btn btn-primary btn-block" id="btnSaveLokasi">Simpan</button>
+    </div>
+</div>
+
+<!-- MODAL KETERANGAN -->
+<div class="modal" id="modalKeterangan">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>📝 Keterangan Lengkap</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div id="keteranganContent"></div>
+        <button class="btn btn-primary btn-block" data-close style="margin-top:6px">Tutup</button>
+    </div>
+</div>
+
+<!-- MODAL IMPORT -->
+<div class="modal" id="modalImport">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>🔗 Import dari Kode StokKu</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div class="form-field">
+            <label class="form-label">Tempel Kode</label>
+            <textarea class="form-input" id="importText" rows="6" placeholder="STOKKU-V1:..."></textarea>
+        </div>
+        <div class="form-help">Kode ini dari tombol <b>Share → Format "Kode Import"</b> di aplikasi StokKu lain. Setelah import, isi Qty & Harga manual di kalkulator.</div>
+        <button class="btn btn-primary btn-block" id="btnDoImport">Import ke Kalkulator</button>
+    </div>
+</div>
+
+<!-- MODAL THEME -->
+<div class="modal" id="modalTheme">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>🎨 Pilih Tema</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
+    </div>
+</div>
+
+<!-- MODAL KERANJANG -->
+<div class="modal" id="modalCart">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>🛒 Keranjang (<span id="cartCount">0</span>)</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div id="cartList"></div>
+        <div style="display:flex; gap:6px; margin-top:8px">
+            <button class="btn btn-danger" id="btnCartClear" style="flex:0 0 100px">🗑 Kosongkan</button>
+            <button class="btn" id="btnCartShare" style="flex:1">📤 Share</button>
+            <button class="btn btn-primary" id="btnCartCalc" style="flex:1">⚖️ Kalkulator</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DRIVE -->
+<div class="modal" id="modalDrive">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>☁️ Google Drive Sync</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div id="driveLoggedOut">
+            <div class="form-help" style="margin-bottom:12px">
+                Login dengan Google untuk menyimpan backup ke Drive Anda.<br>
+                Data disimpan di folder tersembunyi (appDataFolder) — hanya aplikasi ini yang bisa akses.
+            </div>
+            <button class="btn btn-primary btn-block" id="btnDriveLogin">👤 Login dengan Google</button>
+        </div>
+        <div id="driveLoggedIn" style="display:none">
+            <div class="setting-row" style="border:none;padding:0 0 10px 0">
+                <div>
+                    <div class="setting-label" style="color:var(--accent,#58a6ff)">✅ Terhubung</div>
+                    <div class="setting-sub" id="driveUserEmail">-</div>
+                </div>
+            </div>
+            <div class="setting-sub" id="driveLastSync" style="margin-bottom:12px">Belum pernah sync</div>
+            <div class="setting-row" style="border:none;padding:10px 0;margin-bottom:8px">
+                <div>
+                    <div class="setting-label">Auto-Sync</div>
+                    <div class="setting-sub">Upload otomatis setelah ada perubahan</div>
+                </div>
+                <label style="display:flex;align-items:center;cursor:pointer">
+                    <input type="checkbox" id="driveAutoSync" style="width:40px;height:20px;accent-color:#1f6feb;cursor:pointer">
+                </label>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnDriveUpload" style="margin-bottom:6px">📤 Upload ke Drive (Backup)</button>
+            <button class="btn btn-block" id="btnDriveDownload" style="margin-bottom:6px">📥 Download dari Drive (Restore)</button>
+            <button class="btn btn-block" id="btnDriveLogout" style="margin-bottom:6px">🚪 Logout</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DONASI -->
+<div class="modal" id="modalDonasi">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>❤️ Dukung Pengembang</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div class="form-help" style="margin-bottom:12px">
+            Terima kasih sudah pakai StokKu! Kalau aplikasi ini bermanfaat, Anda bisa mendukung pengembangan lebih lanjut. Sepenuh hati, tidak wajib.
+        </div>
+        <div id="donasiList"></div>
+    </div>
+</div>
+
+<!-- MODAL SCAN BARCODE -->
+<div class="modal" id="modalScan">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>📷 Scan Barcode</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div id="scanContainer">
+            <video id="scanVideo" autoplay playsinline muted></video>
+            <div id="scanOverlay">
+                <div id="scanBox"><div id="scanLine"></div></div>
+            </div>
+        </div>
+        <div id="scanStatus">Arahkan kamera ke barcode...</div>
+        <button class="btn btn-block" id="btnScanManual" style="margin-top:8px;display:none">⌨️ Input Manual</button>
+    </div>
+</div>
+
+<!-- MODAL ABOUT -->
+<div class="modal" id="modalAbout">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>ℹ️ Tentang StokKu</span>
+            <button class="modal-close" data-close>✕</button>
+        </div>
+        <div style="font-size:13px;line-height:1.7;color:#e6edf3">
+            <p><b>StokKu v1.0</b></p>
+            <p style="margin-top:8px;color:#7d8590">
+                Catatan stok &amp; daftar belanja multi-lokasi.<br><br>
+                <b style="color:#da3633">⚠ Peringatan:</b> "Clear site data" di browser akan menghapus semua data. Backup dulu via Export!
+            </p>
+            <button class="btn btn-primary btn-block" style="margin-top:12px" id="btnAboutDonasi">❤️ Dukung Pengembang</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- BANNER: Suka StokKu? -->
+<div id="donasiBanner" class="donasi-banner">
+    <div class="donasi-banner-text">
+        <b>❤️ Suka StokKu?</b>
+        <span>Kalau bermanfaat, dukung pengembang</span>
+    </div>
+    <div class="donasi-banner-actions">
+        <button class="btn" id="btnDonasiNanti">Nanti</button>
+        <button class="btn btn-primary" id="btnDonasiLihat">Lihat</button>
+    </div>
+</div>
+
+<input type="file" id="fileImport" accept=".json" style="display:none">
+
+<script>
+/* STORAGE */
+const KEY = 'stokku_v1';
+const DEFAULT = {
+    locations: [
+        { id: 'loc_rumah', nama: 'Rumah' },
+        { id: 'loc_toko',  nama: 'Toko'  }
+    ],
+    barangs: [],
+    stok: {},
+    calc: [],
+    settings: { theme: 'dark' },
+    lastBackup: null
+};
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function loadData(){
+    try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return clone(DEFAULT);
+        return Object.assign(clone(DEFAULT), JSON.parse(raw));
+    } catch { return clone(DEFAULT); }
+}
+function saveData(skipAutoSync){
+    try { localStorage.setItem(KEY, JSON.stringify(data)); }
+    catch(e){ toast('Gagal simpan: ' + e.message, 'error'); }
+    if (!skipAutoSync) scheduleAutoSync();
+}
+
+let data = loadData();
+let currentLocId = null;
+let currentView = 'lokasi';
+let filterColor = 'all';
+let searchStrict = false;
+let selectedItems = {};
+let formMode = 'add'; // 'add' | 'edit'
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+/* HELPERS */
+function esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function rp(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); }
+function tgl(ts){
+    const d = new Date(ts || Date.now());
+    const b = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+    return d.getDate() + ' ' + b[d.getMonth()] + ' ' + d.getFullYear();
+}
+function getStok(id){
+    const s = data.stok[id];
+    return (s && s.nilai != null && !isNaN(s.nilai)) ? s.nilai : null;
+}
+
+function getMatchScore(b, term){
+    if (!term) return 0;
+    let s = 0;
+    if ((b.nama||'').toLowerCase().includes(term)) s += 3;
+    if ((b.kode||'').toLowerCase().includes(term)) s += 2;
+    if ((b.merek||'').toLowerCase().includes(term)) s += 2;
+    if ((b.keterangan||'').toLowerCase().includes(term)) s += 1;
+    return s;
+}
+
+function highlightMatch(text, term){
+    text = String(text ?? '');
+    if (!term) return esc(text);
+    try {
+        const pattern = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const parts = text.split(new RegExp('(' + pattern + ')', 'gi'));
+        return parts.map((p, i) => i % 2 === 1
+            ? '<mark>' + esc(p) + '</mark>'
+            : esc(p)
+        ).join('');
+    } catch(e) {
+        return esc(text);
+    }
+}
+
+function getColor(b){
+    const s = getStok(b.id);
+    if (s === null) return 'grey';
+    if (s <= b.limit) return 'red';
+    if (s <= b.ambangKuning) return 'yellow';
+    return 'green';
+}
+const ORDER = { red:0, yellow:1, green:2, grey:3 };
+
+async function shareText(text){
+    if (navigator.share) {
+        try {
+            await navigator.share({ text });
+            return;
+        } catch(e) {
+            if (e.name === 'AbortError') return;
+        }
+    }
+    try {
+        await navigator.clipboard.writeText(text);
+        toast('Tersalin (share sheet tidak tersedia)', 'success');
+    } catch {
+        window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+    }
+}
+
+function toast(msg, type){
+    const t = $('#toast');
+    t.textContent = msg;
+    t.className = (type || '') + ' show';
+    clearTimeout(t._timer);
+    const duration = type === 'error' ? 3000 : 2000;
+    t._timer = setTimeout(() => { t.classList.remove('show'); }, duration);
+}
+
+// Tap toast untuk dismiss lebih cepat
+$('#toast').addEventListener('click', () => {
+    const t = $('#toast');
+    clearTimeout(t._timer);
+    t.classList.remove('show');
+});
+
+/* NAVIGASI */
+function showView(name){
+    $$('.view').forEach(v => v.classList.remove('active'));
+    const target = $('#view-' + name);
+    if (!target) return;
+    // Force reflow agar animasi CSS re-trigger setiap pindah view
+    void target.offsetWidth;
+    target.classList.add('active');
+    currentView = name;
+
+    // Back button: tampil di data-barang & form
+    const back = $('#btnBack');
+    if (name === 'data-barang' || name === 'form') {
+        back.classList.remove('hidden');
+    } else {
+        back.classList.add('hidden');
+    }
+
+    // Bottom nav: sembunyikan di data-barang & form
+    const nav = $('#bottomNav');
+    if (name === 'data-barang' || name === 'form') {
+        nav.classList.add('hidden');
+    } else {
+        nav.classList.remove('hidden');
+    }
+
+    // Active nav tab
+    $$('.nav-btn').forEach(n => n.classList.remove('active'));
+    if (name === 'lokasi' || name === 'beranda') {
+        $('.nav-btn[data-tab="lokasi"]').classList.add('active');
+    } else if (name === 'kalkulator') {
+        $('.nav-btn[data-tab="kalkulator"]').classList.add('active');
+    }
+
+    // Update title
+    const titleEl = $('#appTitle');
+    if (name === 'lokasi') titleEl.innerHTML = '📔 Stok<span>Ku</span>';
+    else if (name === 'beranda') {
+        const loc = data.locations.find(l => l.id === currentLocId);
+        titleEl.textContent = '📍 ' + (loc ? loc.nama : 'Lokasi');
+    }
+    else if (name === 'data-barang') titleEl.textContent = '📋 Data Barang';
+    else if (name === 'form') titleEl.textContent = formMode === 'edit' ? '✏️ Edit Barang' : '➕ Tambah Barang';
+    else if (name === 'kalkulator') titleEl.textContent = '🔢 Kalkulator';
+
+    document.querySelector('main').scrollTop = 0;
+}
+
+// Back button
+$('#btnBack').addEventListener('click', () => {
+    if (currentView === 'data-barang') {
+        showView('beranda');
+        renderBeranda();
+    } else if (currentView === 'form') {
+        showView('data-barang');
+        renderDataBarang();
+    }
+});
+
+// Bottom nav
+$$('.nav-btn').forEach(n => {
+    n.addEventListener('click', () => {
+        const t = n.dataset.tab;
+        if (t === 'lokasi') { currentLocId = null; showView('lokasi'); renderLokasi(); }
+        if (t === 'kalkulator') { showView('kalkulator'); renderKalkulator(); }
+    });
+});
+
+/* RENDER LOKASI */
+function renderLokasi(){
+    const list = $('#lokasiList');
+    list.innerHTML = '';
+    if (data.locations.length === 0) {
+        list.innerHTML = `<div class="empty"><div class="empty-icon">📔</div>Belum ada lokasi.<br>Tekan "+ Lokasi Baru" untuk mulai.</div>`;
+        return;
+    }
+    data.locations.forEach(loc => {
+        const items = data.barangs.filter(b => b.lokasiId === loc.id);
+        const red = items.filter(b => getColor(b) === 'red').length;
+        const card = document.createElement('div');
+        card.className = 'loc-card';
+        card.innerHTML = `
+            <div class="loc-icon">${esc(loc.nama.charAt(0).toUpperCase())}</div>
+            <div class="loc-body">
+                <div class="loc-name">${esc(loc.nama)}</div>
+                <div class="loc-meta">${items.length} barang${red > 0 ? ` · <b>${red} perlu beli</b>` : ''}</div>
+            </div>
+            <button class="loc-del" title="Hapus">🗑</button>
+        `;
+        card.addEventListener('click', e => {
+            if (e.target.closest('.loc-del')) return;
+            openLokasi(loc.id);
+        });
+        card.querySelector('.loc-del').addEventListener('click', e => {
+            e.stopPropagation();
+            if (!confirm(`Hapus lokasi "${loc.nama}" dan semua barangnya?`)) return;
+            const ids = data.barangs.filter(b => b.lokasiId === loc.id).map(b => b.id);
+            data.locations = data.locations.filter(l => l.id !== loc.id);
+            data.barangs = data.barangs.filter(b => b.lokasiId !== loc.id);
+            ids.forEach(id => delete data.stok[id]);
+            saveData();
+            renderLokasi();
+            toast('Lokasi dihapus');
+        });
+        list.appendChild(card);
+    });
+}
+
+function openLokasi(id){
+    currentLocId = id;
+    selectedItems = {};
+    filterColor = 'all';
+    $$('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+    $('#searchBeranda').value = '';
+    showView('beranda');
+    renderBeranda();
+    updateBottomBar();
+}
+
+/* RENDER BERANDA (lihat + pilih + input stok) */
+function renderBeranda(){
+    const list = $('#berandaList');
+    const term = ($('#searchBeranda').value || '').toLowerCase().trim();
+
+    let items = data.barangs.filter(b => b.lokasiId === currentLocId);
+    if (filterColor !== 'all') items = items.filter(b => getColor(b) === filterColor);
+
+    const scored = items.map(b => ({ b, score: getMatchScore(b, term) }));
+    const matchCount = term ? scored.filter(x => x.score > 0).length : 0;
+
+    // Info bar
+    const infoEl = $('#searchInfo');
+    if (term) {
+        infoEl.classList.add('show');
+        $('#searchCount').textContent = matchCount;
+    } else {
+        infoEl.classList.remove('show');
+    }
+
+    let display = scored;
+    if (term && searchStrict) {
+        display = scored.filter(x => x.score > 0);
+    }
+
+    display.sort((x, y) => {
+        if (term && y.score !== x.score) return y.score - x.score;
+        return (x.b.nama||'').localeCompare(y.b.nama||'');
+    });
+
+    list.innerHTML = '';
+    if (display.length === 0) {
+        let msg;
+        if (term && searchStrict) msg = `Tidak ada barang cocok dengan "<b>${esc(term)}</b>"`;
+        else if (term || filterColor !== 'all') msg = 'Tidak ada barang yang cocok';
+        else msg = 'Belum ada barang.<br>Buka menu ☰ → Data Barang untuk menambah.';
+        list.innerHTML = `<div class="empty"><div class="empty-icon">🛒</div>${msg}</div>`;
+        return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th class="col-check-tbl"></th>
+                <th class="col-kode">Kode</th>
+                <th>Nama Barang</th>
+                <th class="col-merek">Merek</th>
+                <th class="col-stok">Stok</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>`;
+    const tbody = wrap.querySelector('tbody');
+
+    let dividerShown = false;
+
+    display.forEach(({ b, score }) => {
+        // Divider antara matching & non-matching
+        if (term && !searchStrict && !dividerShown && matchCount > 0 && matchCount < display.length && score === 0) {
+            const dv = document.createElement('tr');
+            dv.className = 'divider';
+            dv.innerHTML = `<td colspan="5">— BARANG LAIN —</td>`;
+            tbody.appendChild(dv);
+            dividerShown = true;
+        }
+
+        const stokVal = getStok(b.id);
+        const color = getColor(b);
+        const tr = document.createElement('tr');
+        tr.dataset.c = color;
+        if (term && score === 0) tr.classList.add('dimmed');
+
+        const checked = selectedItems[b.id] !== undefined ? 'checked' : '';
+        const ketHtml = b.keterangan
+            ? `<span class="sub-ket" data-id="${b.id}" title="Klik untuk lihat lengkap">📝 ${highlightMatch(b.keterangan, term)}</span>`
+            : '';
+
+        tr.innerHTML = `
+            <td class="col-check-tbl"><input type="checkbox" class="belanja-check" ${checked}></td>
+            <td class="col-kode">${highlightMatch(b.kode, term)}</td>
+            <td class="col-nama">${highlightMatch(b.nama, term)}${ketHtml}</td>
+            <td class="col-merek">${highlightMatch(b.merek || '', term)}</td>
+            <td class="col-stok"><input type="number" class="stok-input-tbl" step="0.1" value="${stokVal ?? ''}" placeholder="—"><span class="unit-tbl">${esc(b.satuan)}</span></td>
+        `;
+
+        const cb = tr.querySelector('.belanja-check');
+        cb.addEventListener('change', () => {
+            if (cb.checked) {
+                const stok = getStok(b.id) ?? 0;
+                const saran = Math.max(1, Math.ceil(b.limit - stok + 1));
+                selectedItems[b.id] = saran;
+            } else {
+                delete selectedItems[b.id];
+            }
+            updateBottomBar();
+        });
+
+        const inp = tr.querySelector('.stok-input-tbl');
+        inp.addEventListener('input', () => {
+            if (inp.value === '') delete data.stok[b.id];
+            else {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) data.stok[b.id] = { nilai: v, at: Date.now() };
+            }
+            saveData();
+            tr.dataset.c = getColor(b);
+        });
+
+        tbody.appendChild(tr);
+    });
+
+    list.appendChild(wrap);
+}
+
+/* RENDER DATA BARANG (manajemen) */
+function renderDataBarang(){
+    const list = $('#dataBarangList');
+    const term = ($('#searchDataBarang').value || '').toLowerCase().trim();
+
+    let items = data.barangs.filter(b => b.lokasiId === currentLocId);
+    if (term) {
+        items = items.filter(b =>
+            (b.nama||'').toLowerCase().includes(term) ||
+            (b.kode||'').toLowerCase().includes(term) ||
+            (b.merek||'').toLowerCase().includes(term) ||
+            (b.keterangan||'').toLowerCase().includes(term));
+    }
+    items.sort((a,b) => (a.nama||'').localeCompare(b.nama||''));
+
+    list.innerHTML = '';
+    if (items.length === 0) {
+        list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>${
+            term ? 'Tidak ada barang cocok' : 'Belum ada barang.<br>Tekan "+ Tambah Barang" di atas.'
+        }</div>`;
+        return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th class="col-kode">Kode</th>
+                <th>Nama Barang</th>
+                <th class="col-merek">Merek</th>
+                <th class="col-num">Limit</th>
+                <th class="col-num">Ambang</th>
+                <th class="col-aksi">Aksi</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>`;
+    const tbody = wrap.querySelector('tbody');
+
+    items.forEach(b => {
+        const color = getColor(b);
+        const tr = document.createElement('tr');
+        tr.dataset.c = color;
+        const ketHtml = b.keterangan ? `<span class="sub-ket" data-id="${b.id}" title="Klik untuk lihat lengkap">📝 ${esc(b.keterangan)}</span>` : '';
+        tr.innerHTML = `
+            <td class="col-kode">${esc(b.kode)}</td>
+            <td class="col-nama">${esc(b.nama)}${ketHtml}</td>
+            <td class="col-merek">${esc(b.merek || '')}</td>
+            <td class="col-num">${b.limit} <span class="unit-tbl">${esc(b.satuan)}</span></td>
+            <td class="col-num">${b.ambangKuning}</td>
+            <td class="col-aksi">
+                <button class="data-item-btn edit" title="Edit">✏️</button>
+                <button class="data-item-btn del" title="Hapus">🗑</button>
+            </td>
+        `;
+        tr.querySelector('.edit').addEventListener('click', () => openFormBarang(b.id));
+        tr.querySelector('.del').addEventListener('click', () => {
+            if (!confirm(`Hapus "${b.nama}"?`)) return;
+            data.barangs = data.barangs.filter(x => x.id !== b.id);
+            delete data.stok[b.id];
+            delete selectedItems[b.id];
+            saveData();
+            renderDataBarang();
+            toast('Barang dihapus');
+        });
+        tbody.appendChild(tr);
+    });
+
+    list.appendChild(wrap);
+}
+
+/* FORM BARANG */
+function openFormBarang(id){
+    formMode = id ? 'edit' : 'add';
+    const b = id ? data.barangs.find(x => x.id === id) : null;
+    $('#fId').value = b ? b.id : '';
+    $('#fKode').value = b ? b.kode : '';
+    $('#fNama').value = b ? b.nama : '';
+    $('#fMerek').value = b ? (b.merek||'') : '';
+    $('#fSatuan').value = b ? b.satuan : '';
+    $('#fLimit').value = b ? b.limit : '';
+    $('#fAmbang').value = b ? b.ambangKuning : '';
+    $('#fKeterangan').value = b ? (b.keterangan || '') : '';
+    $('#btnHapusBarang').style.display = b ? '' : 'none';
+    showView('form');
+    const ta = $('#fKeterangan');
+    if (ta) {
+        setTimeout(() => {
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(ta.scrollHeight, 240) + 'px';
+        }, 30);
+    }
+}
+
+$('#formBarang').addEventListener('submit', e => {
+    e.preventDefault();
+    const id = $('#fId').value;
+    const payload = {
+        kode: $('#fKode').value.trim(),
+        nama: $('#fNama').value.trim(),
+        merek: $('#fMerek').value.trim(),
+        satuan: $('#fSatuan').value.trim(),
+        limit: parseFloat($('#fLimit').value),
+        ambangKuning: parseFloat($('#fAmbang').value),
+        keterangan: $('#fKeterangan').value.trim()
+    };
+    if (isNaN(payload.limit) || isNaN(payload.ambangKuning)) return toast('Limit & ambang harus angka', 'error');
+    if (payload.ambangKuning < payload.limit) return toast('Ambang harus ≥ limit', 'error');
+    if (id) {
+        const i = data.barangs.findIndex(x => x.id === id);
+        if (i !== -1) data.barangs[i] = { ...data.barangs[i], ...payload };
+        toast('Barang diperbarui', 'success');
+    } else {
+        data.barangs.push({ id: uid('brg'), lokasiId: currentLocId, ...payload });
+        toast('Barang ditambahkan', 'success');
+    }
+    saveData();
+    showView('data-barang');
+    renderDataBarang();
+});
+
+$('#btnHapusBarang').addEventListener('click', () => {
+    const id = $('#fId').value;
+    if (!id) return;
+    if (!confirm('Hapus barang ini?')) return;
+    data.barangs = data.barangs.filter(b => b.id !== id);
+    delete data.stok[id];
+    delete selectedItems[id];
+    saveData();
+    showView('data-barang');
+    renderDataBarang();
+    toast('Barang dihapus');
+});
+
+function updateBottomBar(){
+    const count = Object.keys(selectedItems).length;
+    document.body.classList.toggle('has-selection', count > 0);
+    const badge = $('#cartBadge');
+    if (badge) badge.textContent = count;
+}
+
+function renderCart(){
+    const list = $('#cartList');
+    list.innerHTML = '';
+    const ids = Object.keys(selectedItems);
+    $('#cartCount').textContent = ids.length;
+
+    if (ids.length === 0) {
+        list.innerHTML = '<div class="empty"><div class="empty-icon">🛒</div>Keranjang kosong.<br>Centang barang di beranda.</div>';
+        return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th>Barang</th>
+                <th class="col-qty-tbl">Qty</th>
+                <th class="col-aksi"></th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>`;
+    const tbody = wrap.querySelector('tbody');
+    let totalQty = 0;
+
+    ids.forEach(id => {
+        const b = data.barangs.find(x => x.id === id);
+        if (!b) return;
+        const q = parseFloat(selectedItems[id]) || 0;
+        totalQty += q;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="col-nama">${esc(b.nama)}${b.merek ? `<span class="sub-ket">${esc(b.merek)}</span>` : ''}</td>
+            <td class="col-qty-tbl"><input type="number" class="qty-input-tbl cart-qty" data-id="${id}" step="0.1" min="0" value="${selectedItems[id] ?? ''}" placeholder="0"></td>
+            <td class="col-aksi"><button class="data-item-btn del cart-del" data-id="${id}" title="Hapus">✕</button></td>
+        `;
+        tr.querySelector('.cart-qty').addEventListener('input', e => {
+            const v = parseFloat(e.target.value);
+            if (e.target.value === '' || isNaN(v) || v <= 0) delete selectedItems[id];
+            else selectedItems[id] = v;
+            updateBottomBar();
+            // Update total row
+            const newIds = Object.keys(selectedItems);
+            const tq = newIds.reduce((s, k) => s + (parseFloat(selectedItems[k]) || 0), 0);
+            const totEl = list.querySelector('.cart-total');
+            if (totEl) totEl.innerHTML = `<b style="color:#e6edf3">${newIds.length} item</b> · <b style="color:#58a6ff">${tq} qty</b>`;
+            if (newIds.length === 0) { closeModals(); renderBeranda(); }
+        });
+        tr.querySelector('.cart-del').addEventListener('click', () => {
+            delete selectedItems[id];
+            updateBottomBar();
+            renderCart();
+            renderBeranda();
+        });
+        tbody.appendChild(tr);
+    });
+    list.appendChild(wrap);
+
+    const totalEl = document.createElement('div');
+    totalEl.className = 'cart-total';
+    totalEl.style.cssText = 'margin-top:10px;padding:10px;background:#21262d;border-radius:8px;text-align:center;font-size:12px;color:#7d8590';
+    totalEl.innerHTML = `<b style="color:#e6edf3">${ids.length} item</b> · <b style="color:#58a6ff">${totalQty} qty</b>`;
+    list.appendChild(totalEl);
+}
+
+$('#btnKeranjang').addEventListener('click', () => {
+    if (Object.keys(selectedItems).length === 0) return toast('Centang minimal 1 barang', 'error');
+    renderCart();
+    openModal('modalCart');
+});
+
+$('#btnShare').addEventListener('click', openShareModal);
+
+$('#btnKeKalkulator').addEventListener('click', () => {
+    const picked = Object.keys(selectedItems);
+    if (picked.length === 0) return toast('Centang dulu barangnya', 'error');
+    picked.forEach(id => {
+        const b = data.barangs.find(x => x.id === id);
+        if (!b) return;
+        data.calc.push({
+            id: uid('calc'),
+            barangId: b.id,
+            kode: b.kode || '',
+            nama: b.nama || '',
+            merek: b.merek || '',
+            qty: '',
+            harga: ''
+        });
+    });
+    saveData();
+    selectedItems = {};
+    updateBottomBar();
+    renderBeranda();
+    showView('kalkulator');
+    renderKalkulator();
+    toast('✅ Item terkirim ke kalkulator', 'success');
+});
+
+$('#btnCartShare').addEventListener('click', () => {
+    if (Object.keys(selectedItems).length === 0) return toast('Keranjang kosong', 'error');
+    closeModals();
+    setTimeout(openShareModal, 150);
+});
+
+$('#btnCartCalc').addEventListener('click', () => {
+    if (Object.keys(selectedItems).length === 0) return toast('Keranjang kosong', 'error');
+    closeModals();
+    $('#btnKeKalkulator').click();
+});
+
+$('#btnCartClear').addEventListener('click', () => {
+    if (!confirm('Kosongkan keranjang?')) return;
+    selectedItems = {};
+    updateBottomBar();
+    renderBeranda();
+    closeModals();
+});
+
+/* SEARCH & FILTER */
+$('#searchBeranda').addEventListener('input', renderBeranda);
+$('#searchStrict').addEventListener('change', (e) => {
+    searchStrict = e.target.checked;
+    renderBeranda();
+});
+$('#searchDataBarang').addEventListener('input', renderDataBarang);
+$$('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+        $$('.chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        filterColor = c.dataset.filter;
+        renderBeranda();
+    });
+});
+
+/* TOMBOL DATA BARANG */
+$('#btnAddBarang').addEventListener('click', () => openFormBarang(null));
+$('#btnUploadDrive').addEventListener('click', () => {
+    toast('Google Drive belum aktif — Fase 2', 'error');
+});
+
+/* MODALS */
+function openModal(id){ $('#' + id).classList.add('active'); }
+function closeModals(){
+    if ($('#modalScan') && $('#modalScan').classList.contains('active')) stopScan();
+    $$('.modal').forEach(m => m.classList.remove('active'));
+}
+$$('[data-close]').forEach(el => el.addEventListener('click', closeModals));
+
+$('#btnMenu').addEventListener('click', () => openModal('modalMenu'));
+$('#btnAddLokasi').addEventListener('click', () => {
+    $('#newLokasiName').value = '';
+    openModal('modalLokasi');
+});
+$('#btnSaveLokasi').addEventListener('click', () => {
+    const nama = $('#newLokasiName').value.trim();
+    if (!nama) return toast('Nama lokasi wajib diisi', 'error');
+    data.locations.push({ id: uid('loc'), nama });
+    saveData();
+    closeModals();
+    renderLokasi();
+    toast('Lokasi ditambahkan', 'success');
+});
+$('#menuAbout').addEventListener('click', () => { closeModals(); openModal('modalAbout'); });
+$('#btnAboutDonasi')?.addEventListener('click', () => {
+    closeModals();
+    renderDonasi();
+    setTimeout(() => openModal('modalDonasi'), 100);
+});
+$('#menuExport').addEventListener('click', () => { closeModals(); exportData(); });
+$('#menuImport').addEventListener('click', () => { closeModals(); $('#fileImport').click(); });
+$('#menuDataBarang').addEventListener('click', () => {
+    closeModals();
+    if (!currentLocId) {
+        toast('Buka lokasi dulu (klik salah satu lokasi)', 'error');
+        return;
+    }
+    showView('data-barang');
+    renderDataBarang();
+});
+
+/* SHARE */
+function openShareModal(){
+    if (Object.keys(selectedItems).length === 0) return toast('Centang minimal 1 barang', 'error');
+    $('#sharePreview').value = buildShareText($('#shareFormat').value || 'chat');
+    openModal('modalShare');
+}
+$('#btnShare').addEventListener('click', openShareModal);
+$('#shareFormat').addEventListener('change', () => {
+    $('#sharePreview').value = buildShareText($('#shareFormat').value);
+});
+async function copyRich(plain, html){
+    if (navigator.clipboard && window.ClipboardItem) {
+        try {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/plain': new Blob([plain], { type: 'text/plain' }),
+                    'text/html': new Blob([html], { type: 'text/html' })
+                })
+            ]);
+            return true;
+        } catch(e) { console.warn('Rich copy gagal:', e); }
+    }
+    try {
+        await navigator.clipboard.writeText(plain);
+        return true;
+    } catch(e) { return false; }
+}
+
+$('#btnShareCopy').addEventListener('click', async () => {
+    const fmt = $('#shareFormat').value;
+    if (fmt === 'table') {
+        const plain = buildShareText('table');
+        const html = buildShareHTML();
+        if (await copyRich(plain, html)) {
+            toast('✅ Tersalin — paste ke Word/Docs (tabel) atau Excel (kolom)', 'success');
+        } else {
+            toast('❌ Gagal menyalin', 'error');
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText($('#sharePreview').value);
+            toast('✅ Tersalin', 'success');
+        } catch {
+            $('#sharePreview').select();
+            document.execCommand('copy');
+            toast('✅ Tersalin', 'success');
+        }
+    }
+});
+$('#btnShareWA').addEventListener('click', () => {
+    shareText($('#sharePreview').value);
+});
+
+$('#btnShareTXT').addEventListener('click', () => {
+    const fmt = $('#shareFormat').value;
+    const text = $('#sharePreview').value;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `belanja-${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ File .txt terunduh — buka di Notes', 'success');
+});
+
+$('#btnShareCSV').addEventListener('click', () => {
+    const csv = buildShareText('csv');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `belanja-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ File .csv terunduh — buka pakai Excel/Sheets', 'success');
+});
+
+function buildShareText(format){
+    const loc = data.locations.find(l => l.id === currentLocId);
+    const locName = loc ? loc.nama : 'Lokasi';
+    const items = data.barangs
+        .filter(b => b.lokasiId === currentLocId && selectedItems[b.id] !== undefined)
+        .sort((a,b) => {
+            const ca = ORDER[getColor(a)], cb = ORDER[getColor(b)];
+            if (ca !== cb) return ca - cb;
+            return (a.nama||'').localeCompare(b.nama||'');
+        });
+    if (items.length === 0) return '(Tidak ada barang dipilih)';
+
+    if (format === 'checklist') {
+        const lines = [
+            `🛒 Daftar Belanja — ${locName}`,
+            `📅 ${tgl()}`,
+            `_Centang manual: ubah ☐ jadi ✅ setelah dibeli_`,
+            ''
+        ];
+        items.forEach(b => {
+            const qty = selectedItems[b.id];
+            const merek = b.merek ? ` · ${b.merek}` : '';
+            lines.push(`☐ [${b.kode}] ${b.nama}${merek} · ${qty} ${b.satuan}`);
+        });
+        lines.push('');
+        lines.push(`*Total: ${items.length} item*`);
+        return lines.join('\n');
+    }
+
+    if (format === 'chat') {
+        const lines = [`🛒 *Daftar Belanja — ${locName}*`, `📅 ${tgl()}`, ''];
+        items.forEach((b, i) => {
+            const stok = getStok(b.id);
+            const stokStr = stok === null ? 'belum dicek' : `${stok} ${b.satuan}`;
+            const qty = selectedItems[b.id];
+            const merek = b.merek ? ` (${b.merek})` : '';
+            lines.push(`${i+1}. [${b.kode}] ${b.nama}${merek} stok ${stokStr}, beli ${qty} ${b.satuan}`);
+        });
+        return lines.join('\n');
+    }
+
+    if (format === 'rapi') {
+        const wN = 14, wK = 5, wM = 9, wS = 8;
+        const pad = (s, n) => {
+            s = String(s ?? '');
+            while (s.length < n) s += ' ';
+            return s;
+        };
+        const trunc = (s, n) => {
+            s = String(s ?? '');
+            if (s.length <= n) return s;
+            return s.substring(0, n - 1) + '…';
+        };
+        const wrapNama = (text, width, maxLines) => {
+            text = String(text ?? '').trim().replace(/\s+/g, ' ');
+            if (!text) return [''];
+            const out = [];
+            let rest = text;
+            while (rest && out.length < maxLines) {
+                if (rest.length <= width) { out.push(rest); rest = ''; break; }
+                let cut = rest.lastIndexOf(' ', width);
+                if (cut <= 0) cut = width;
+                out.push(rest.substring(0, cut).trim());
+                rest = rest.substring(cut).trim();
+            }
+            if (rest) {
+                const last = out[maxLines - 1];
+                out[maxLines - 1] = last.length >= width
+                    ? last.substring(0, width - 1) + '…'
+                    : last + '…';
+            }
+            return out;
+        };
+    
+        const header = pad('Nama', wN) + pad('Kode', wK) + pad('Merek', wM) + pad('Stok', wS);
+        const sep = '-'.repeat(wN - 1) + ' ' + '-'.repeat(wK - 1) + ' ' + '-'.repeat(wM - 1) + ' ' + '-'.repeat(wS - 1) + ' ';
+    
+        const lines = [`🛒 Daftar Belanja — ${locName}`, `📅 ${tgl()}`, '', '```'];
+        lines.push(header.replace(/\s+$/, ''));
+        lines.push(sep);
+    
+        items.forEach(b => {
+            const stok = getStok(b.id);
+            const stokStr = (stok === null ? '-' : String(stok)) + ' ' + (b.satuan || '');
+            const namaLines = wrapNama(b.nama || '', wN, 2);
+    
+            // Baris 1: nama[0] + kode + merek + stok
+            lines.push(
+                (pad(namaLines[0], wN) +
+                 pad(b.kode || '-', wK) +
+                 pad(trunc(b.merek || '', wM), wM) +
+                 pad(trunc(stokStr, wS), wS)
+                ).replace(/\s+$/, '')
+            );
+    
+            // Baris lanjutan: nama[1], nama[2]... — kolom Nama (paling kiri)
+            for (let i = 1; i < namaLines.length; i++) {
+                lines.push(pad(namaLines[i], wN).replace(/\s+$/, ''));
+            }
+        });
+    
+        lines.push('```');
+        return lines.join('\n');
+    }
+
+    if (format === 'table') {
+        const headers = ['No','Kode','Nama Barang','Merek','Stok','Satuan','Beli'];
+        const lines = [headers.join('\t')];
+        items.forEach((b, i) => {
+            const stok = getStok(b.id);
+            lines.push([i+1, b.kode || '', b.nama || '', b.merek || '', stok ?? '', b.satuan || '', selectedItems[b.id]].join('\t'));
+        });
+        return lines.join('\n');
+    }
+
+    if (format === 'import') {
+        const payload = {
+            type: 'stokku-belanja', v: 1, loc: locName, date: tgl(),
+            items: items.map(b => ({
+                kode: b.kode || '', nama: b.nama || '', merek: b.merek || '',
+                satuan: b.satuan || '', stok: getStok(b.id), qty: selectedItems[b.id]
+            }))
+        };
+        try { return 'STOKKU-V1:' + btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); }
+        catch(e) { return 'ERROR: ' + e.message; }
+    }
+
+    return '';
+}
+
+function buildShareHTML(){
+    const loc = data.locations.find(l => l.id === currentLocId);
+    const locName = loc ? loc.nama : 'Lokasi';
+    const items = data.barangs
+        .filter(b => b.lokasiId === currentLocId && selectedItems[b.id] !== undefined)
+        .sort((a,b) => {
+            const ca = ORDER[getColor(a)], cb = ORDER[getColor(b)];
+            if (ca !== cb) return ca - cb;
+            return (a.nama||'').localeCompare(b.nama||'');
+        });
+    const headers = ['No','Kode','Nama Barang','Merek','Stok','Satuan','Beli'];
+    let html = `<p><b>Daftar Belanja — ${esc(locName)}</b><br>Tanggal: ${tgl()}</p>`;
+    html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:11pt">`;
+    html += `<thead><tr style="background:#eaeaea">${headers.map(h=>`<th align="left">${h}</th>`).join('')}</tr></thead><tbody>`;
+    items.forEach((b, i) => {
+        const stok = getStok(b.id);
+        html += `<tr><td>${i+1}</td><td>${esc(b.kode||'')}</td><td>${esc(b.nama||'')}</td><td>${esc(b.merek||'')}</td><td>${stok ?? '-'}</td><td>${esc(b.satuan||'')}</td><td>${selectedItems[b.id]}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    return html;
+}
+
+/* KALKULATOR */
+function renderKalkulator(){
+    const list = $('#calcList');
+    list.innerHTML = '';
+    let total = 0;
+    if (data.calc.length === 0) {
+        list.innerHTML = `<div class="empty"><div class="empty-icon">💰</div>Kalkulator kosong.<br>Centang barang di beranda → tekan <b>➕ Kalkulator</b>.</div>`;
+        $('#calcTotal').textContent = 'Rp 0';
+        return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th class="col-kode">Kode</th>
+                <th>Nama Barang</th>
+                <th class="col-merek">Merek</th>
+                <th class="col-qty-tbl">Qty</th>
+                <th class="col-harga">Harga</th>
+                <th class="col-harga">Subtotal</th>
+                <th class="col-aksi"></th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>`;
+    const tbody = wrap.querySelector('tbody');
+
+    data.calc.forEach((item, idx) => {
+        const q = parseFloat(item.qty) || 0;
+        const h = parseFloat(item.harga) || 0;
+        const sub = q * h;
+        total += sub;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="col-kode">${esc(item.kode || '')}</td>
+            <td class="col-nama"><input type="text" class="c-nama" value="${esc(item.nama || '')}" placeholder="Nama..." style="width:100%;padding:4px 6px;font-size:12px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#e6edf3;font-weight:600"></td>
+            <td class="col-merek">${esc(item.merek || '')}</td>
+            <td class="col-qty-tbl"><input type="number" class="qty-input-tbl c-qty" step="0.1" min="0" value="${item.qty ?? ''}" placeholder="0"></td>
+            <td class="col-harga"><input type="number" class="stok-input-tbl c-harga" step="1" min="0" value="${item.harga ?? ''}" placeholder="0" style="width:70px"></td>
+            <td class="col-harga c-sub"><b>${rp(sub)}</b></td>
+            <td class="col-aksi"><button class="data-item-btn del c-del" title="Hapus">✕</button></td>
+        `;
+        tr.querySelector('.c-nama').addEventListener('input', e => {
+            data.calc[idx].nama = e.target.value;
+            saveData();
+        });
+        tr.querySelector('.c-qty').addEventListener('input', e => {
+            data.calc[idx].qty = parseFloat(e.target.value) || 0;
+            saveData();
+            const h2 = parseFloat(data.calc[idx].harga) || 0;
+            tr.querySelector('.c-sub').innerHTML = `<b>${rp((parseFloat(e.target.value) || 0) * h2)}</b>`;
+            updateCalcTotal();
+        });
+        tr.querySelector('.c-harga').addEventListener('input', e => {
+            data.calc[idx].harga = parseFloat(e.target.value) || 0;
+            saveData();
+            const q2 = parseFloat(data.calc[idx].qty) || 0;
+            tr.querySelector('.c-sub').innerHTML = `<b>${rp(q2 * (parseFloat(e.target.value) || 0))}</b>`;
+            updateCalcTotal();
+        });
+        tr.querySelector('.c-del').addEventListener('click', () => {
+            data.calc.splice(idx, 1);
+            saveData();
+            renderKalkulator();
+        });
+        tbody.appendChild(tr);
+    });
+
+    list.appendChild(wrap);
+    $('#calcTotal').textContent = rp(total);
+}
+
+function updateCalcTotal(){
+    let total = 0;
+    data.calc.forEach(item => {
+        total += (parseFloat(item.qty) || 0) * (parseFloat(item.harga) || 0);
+    });
+    $('#calcTotal').textContent = rp(total);
+}
+
+$('#btnCalcAdd').addEventListener('click', () => {
+    data.calc.push({ id: uid('calc'), barangId: null, kode: '', nama: '', merek: '', qty: '', harga: '' });
+    saveData();
+    renderKalkulator();
+    toast('Baris baru ditambahkan — isi manual', 'success');
+});
+
+$('#btnCalcImport').addEventListener('click', () => {
+    $('#importText').value = '';
+    openModal('modalImport');
+});
+
+function importFromKode(text){
+    text = (text || '').trim();
+    if (!text.startsWith('STOKKU-V1:')) {
+        return { ok: false, msg: 'Kode tidak valid (harus diawali STOKKU-V1:)' };
+    }
+    try {
+        const b64 = text.slice('STOKKU-V1:'.length);
+        const json = decodeURIComponent(escape(atob(b64)));
+        const payload = JSON.parse(json);
+        if (!payload.items || !Array.isArray(payload.items)) {
+            return { ok: false, msg: 'Format data tidak dikenali' };
+        }
+        payload.items.forEach(it => {
+            data.calc.push({
+                id: uid('calc'),
+                barangId: null,
+                kode: it.kode || '',
+                nama: it.nama || '',
+                merek: it.merek || '',
+                qty: it.qty || '',
+                harga: ''
+            });
+        });
+        saveData();
+        return { ok: true, count: payload.items.length, from: payload.loc || '-', date: payload.date || '-' };
+    } catch(e) {
+        return { ok: false, msg: 'Gagal decode: ' + e.message };
+    }
+}
+
+$('#btnDoImport').addEventListener('click', () => {
+    const r = importFromKode($('#importText').value);
+    if (r.ok) {
+        closeModals();
+        renderKalkulator();
+        toast(`✅ ${r.count} item diimport dari ${r.from} (${r.date})`, 'success');
+    } else {
+        toast('❌ ' + r.msg, 'error');
+    }
+});
+$('#btnCalcReset').addEventListener('click', () => {
+    if (!confirm('Kosongkan kalkulator?')) return;
+    data.calc = [];
+    saveData();
+    renderKalkulator();
+});
+$('#btnCalcCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(calcText()); toast('Tersalin', 'success'); }
+    catch { toast('Gagal menyalin', 'error'); }
+});
+$('#btnCalcWA').addEventListener('click', () => {
+    shareText(calcText());
+});
+
+function calcText(){
+    if (data.calc.length === 0) return '(kosong)';
+    const lines = ['⚖️ *Kalkulator Belanja*', '📅 ' + tgl(), ''];
+    let total = 0;
+    data.calc.forEach((item, i) => {
+        const q = parseFloat(item.qty)||0, h = parseFloat(item.harga)||0, s = q*h;
+        total += s;
+        lines.push(`${i+1}. ${item.nama || '(tanpa nama)'} — ${q} × ${rp(h)} = ${rp(s)}`);
+    });
+    lines.push(''); lines.push(`*Total: ${rp(total)}*`);
+    return lines.join('\n');
+}
+
+/* EXPORT / IMPORT */
+function exportData(){
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stokku-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    data.lastBackup = Date.now();
+    saveData();
+    toast('Backup terunduh', 'success');
+}
+$('#fileImport')?.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        try {
+            const p = JSON.parse(ev.target.result);
+            if (!confirm('Import akan MENGGANTI semua data. Lanjut?')) return;
+            data = Object.assign(clone(DEFAULT), p);
+            saveData();
+            applyTheme();
+            showView('lokasi');
+            renderLokasi();
+            toast('Import berhasil', 'success');
+        } catch { toast('File tidak valid', 'error'); }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+});
+
+/* THEME PICKER */
+const THEMES = [
+    { id: 'dark',      name: 'Gelap',     colors: ['#0d1117', '#161b22', '#58a6ff'] },
+    { id: 'light',     name: 'Terang',    colors: ['#f6f8fa', '#ffffff', '#0969da'] },
+    { id: 'ocean',     name: 'Ocean',     colors: ['#071a2c', '#0a2540', '#00d4ff'] },
+    { id: 'forest',    name: 'Forest',    colors: ['#0a1a0a', '#0f2610', '#4ade80'] },
+    { id: 'sunset',    name: 'Sunset',    colors: ['#1a0a05', '#26100a', '#ff8844'] },
+    { id: 'midnight',  name: 'Midnight',  colors: ['#10051a', '#1a0a28', '#d946ef'] },
+    { id: 'rose',      name: 'Rose',      colors: ['#1a0a10', '#261018', '#fb7185'] },
+    { id: 'cyberpunk', name: 'Cyber',     colors: ['#050505', '#151525', '#ff00ff'] },
+    { id: 'coffee',    name: 'Coffee',    colors: ['#1a1310', '#241a14', '#d4a574'] },
+    { id: 'sky',       name: 'Sky',       colors: ['#0a1622', '#0f1e2e', '#38bdf8'] }
+];
+
+function renderThemePicker(){
+    const grid = $('#themeGrid');
+    grid.innerHTML = '';
+    const current = data.settings.theme || 'dark';
+    THEMES.forEach(t => {
+        const el = document.createElement('div');
+        el.className = 'theme-option' + (current === t.id ? ' current' : '');
+        el.innerHTML = `
+            <div class="theme-preview">
+                ${t.colors.map(c => `<div class="theme-swatch" style="background:${c}"></div>`).join('')}
+            </div>
+            <div class="theme-name">${t.name}</div>
+        `;
+        el.addEventListener('click', () => {
+            data.settings.theme = t.id;
+            saveData();
+            applyTheme();
+            renderThemePicker();
+            toast('🎨 Tema: ' + t.name, 'success');
+            setTimeout(() => closeModals(), 400);
+        });
+        grid.appendChild(el);
+    });
+}
+
+/* THEME */
+function applyTheme(){
+    const t = data.settings.theme || 'dark';
+    const all = ['light', 'theme-ocean', 'theme-forest', 'theme-sunset', 'theme-midnight',
+                 'theme-rose', 'theme-cyberpunk', 'theme-coffee', 'theme-sky'];
+    document.body.classList.remove(...all);
+    if (t === 'light') document.body.classList.add('light');
+    else if (t !== 'dark') document.body.classList.add('theme-' + t);
+}
+$('#btnTheme').addEventListener('click', () => {
+    renderThemePicker();
+    openModal('modalTheme');
+});
+
+/* KETERANGAN POPUP (event delegation) */
+document.addEventListener('click', (e) => {
+    const ketEl = e.target.closest('.sub-ket');
+    if (!ketEl) return;
+    e.stopPropagation();
+    const id = ketEl.dataset.id;
+    const b = data.barangs.find(x => x.id === id);
+    if (b && b.keterangan) {
+        $('#keteranganContent').textContent = b.keterangan;
+        openModal('modalKeterangan');
+    }
+});
+
+/* TEXTAREA AUTO-GROW */
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'fKeterangan') {
+        e.target.style.height = 'auto';
+        e.target.style.height = Math.min(e.target.scrollHeight, 240) + 'px';
+    }
+});
+
+/* ═══════════════════════════════════════════════
+   GOOGLE DRIVE SYNC
+   ═══════════════════════════════════════════════ */
+const GDRIVE_CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const GDRIVE_FILE_NAME = 'stokku-backup.json';
+
+let gdriveToken = null;
+let gdriveTokenClient = null;
+let gdriveUserEmail = '';
+let gdriveFileId = null;
+
+function initDriveClient(){
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+        console.warn('GIS belum loaded');
+        return false;
+    }
+    if (gdriveTokenClient) return true;
+    gdriveTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GDRIVE_CLIENT_ID,
+        scope: GDRIVE_SCOPE,
+        callback: (resp) => {
+            if (resp.error) {
+                toast('❌ Login gagal: ' + resp.error, 'error');
+                return;
+            }
+            gdriveToken = resp.access_token;
+            gdriveUserEmail = (resp.email || 'Google User');
+            data.settings.drive = { connected: true, email: gdriveUserEmail, lastSync: data.settings.drive?.lastSync || null };
+            saveData(true);
+            renderDriveUI();
+            toast('✅ Terhubung ke Google Drive', 'success');
+        }
+    });
+    return true;
+}
+
+function driveLogin(){
+    if (!initDriveClient()) {
+        toast('❌ Google script belum siap, coba lagi', 'error');
+        return;
+    }
+    gdriveTokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function driveLogout(){
+    if (gdriveToken && window.google?.accounts?.oauth2?.revoke) {
+        google.accounts.oauth2.revoke(gdriveToken, () => {});
+    }
+    gdriveToken = null;
+    gdriveUserEmail = '';
+    gdriveFileId = null;
+    if (data.settings.drive) data.settings.drive.connected = false;
+    saveData();
+    renderDriveUI();
+    toast('🚪 Logout dari Drive', 'success');
+}
+
+async function driveFetch(url, opts = {}){
+    if (!gdriveToken) throw new Error('Belum login');
+    opts.headers = Object.assign({}, opts.headers || {}, {
+        'Authorization': 'Bearer ' + gdriveToken
+    });
+    const res = await fetch(url, opts);
+    if (res.status === 401) {
+        gdriveToken = null;
+        throw new Error('Token expired, silakan login ulang');
+    }
+    if (!res.ok) {
+        const t = await res.text();
+        throw new Error('HTTP ' + res.status + ': ' + t);
+    }
+    return res;
+}
+
+async function driveFindFile(){
+    const url = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime,size)&q=name%3D%27' + encodeURIComponent(GDRIVE_FILE_NAME) + '%27';
+    const res = await driveFetch(url);
+    const json = await res.json();
+    if (json.files && json.files.length > 0) return json.files[0];
+    return null;
+}
+
+async function driveUpload(){
+    try {
+        if (!gdriveToken) return toast('Login dulu', 'error');
+        toast('⏳ Upload ke Drive...');
+        const payload = JSON.stringify(data);
+        const file = await driveFindFile();
+
+        if (file) {
+            await driveFetch(
+                'https://www.googleapis.com/upload/drive/v3/files/' + file.id + '?uploadType=media',
+                { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: payload }
+            );
+            gdriveFileId = file.id;
+        } else {
+            const boundary = '-------stokku' + Date.now();
+            const meta = JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] });
+            const body =
+                '--' + boundary + '\r\n' +
+                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+                meta + '\r\n' +
+                '--' + boundary + '\r\n' +
+                'Content-Type: application/json\r\n\r\n' +
+                payload + '\r\n' +
+                '--' + boundary + '--';
+            const res = await driveFetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+                { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body }
+            );
+            const j = await res.json();
+            gdriveFileId = j.id;
+        }
+
+        data.settings.drive = data.settings.drive || {};
+        data.settings.drive.connected = true;
+        data.settings.drive.email = gdriveUserEmail;
+        data.settings.drive.lastSync = Date.now();
+        saveData();
+        renderDriveUI();
+        toast('✅ Backup terupload ke Drive', 'success');
+    } catch(e) {
+        toast('❌ Upload gagal: ' + e.message, 'error');
+    }
+}
+
+async function driveDownload(){
+    try {
+        if (!gdriveToken) return toast('Login dulu', 'error');
+        toast('⏳ Download dari Drive...');
+        const file = await driveFindFile();
+        if (!file) return toast('❌ Belum ada backup di Drive', 'error');
+
+        const res = await driveFetch('https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media');
+        const remote = await res.json();
+        if (!remote || !remote.barangs) return toast('❌ File tidak valid', 'error');
+
+        if (!confirm('Restore akan MENGGANTI semua data lokal. Lanjut?')) return;
+
+        data = Object.assign(clone(DEFAULT), remote);
+        data.settings.drive = data.settings.drive || {};
+        data.settings.drive.connected = true;
+        data.settings.drive.email = gdriveUserEmail;
+        data.settings.drive.lastSync = Date.now();
+        saveData();
+        applyTheme();
+        showView('lokasi');
+        renderLokasi();
+        renderDriveUI();
+        toast('✅ Restore dari Drive berhasil', 'success');
+    } catch(e) {
+        toast('❌ Download gagal: ' + e.message, 'error');
+    }
+}
+
+function renderDriveUI(){
+    const loggedOut = $('#driveLoggedOut');
+    const loggedIn = $('#driveLoggedIn');
+    if (!loggedOut || !loggedIn) return;
+
+    const autoCb = $('#driveAutoSync');
+    if (autoCb) autoCb.checked = !!(data.settings.drive && data.settings.drive.autoSync);
+    
+    const connected = gdriveToken !== null || (data.settings.drive && data.settings.drive.connected && gdriveToken);
+    if (gdriveToken) {
+        loggedOut.style.display = 'none';
+        loggedIn.style.display = 'block';
+        $('#driveUserEmail').textContent = gdriveUserEmail || (data.settings.drive && data.settings.drive.email) || 'Google User';
+        const ls = data.settings.drive && data.settings.drive.lastSync;
+        $('#driveLastSync').textContent = ls ? 'Sync terakhir: ' + tgl(ls) : 'Belum pernah sync';
+    } else {
+        loggedOut.style.display = 'block';
+        loggedIn.style.display = 'none';
+        if (data.settings.drive && data.settings.drive.connected) {
+            // token hilang (refresh page) — arahkan login ulang
+            loggedOut.querySelector('.form-help').innerHTML = 'Sesi berakhir. Login ulang untuk sync ke Drive.';
+        }
+    }
+}
+
+$('#menuDrive').addEventListener('click', () => {
+    closeModals();
+    renderDriveUI();
+    openModal('modalDrive');
+});
+$('#btnDriveLogin').addEventListener('click', driveLogin);
+$('#btnDriveLogout').addEventListener('click', driveLogout);
+$('#btnDriveUpload').addEventListener('click', driveUpload);
+$('#btnDriveDownload').addEventListener('click', driveDownload);
+
+/* ═══════════════════════════════════════════════
+   AUTO-SYNC ENGINE
+   ═══════════════════════════════════════════════ */
+let autoSyncTimer = null;
+let autoSyncInProgress = false;
+let autoSyncQueued = false;
+const AUTO_SYNC_DELAY = 3000; // 3 detik debounce
+
+function updateSyncIndicator(state){
+    const dot = $('#syncDot');
+    if (!dot) return;
+    const auto = data.settings.drive && data.settings.drive.autoSync;
+    if (!auto || !gdriveToken) {
+        dot.style.display = 'none';
+        return;
+    }
+    dot.style.display = 'inline-block';
+    dot.className = 'sync-dot ' + state;
+    dot.title = 'Sync: ' + state;
+}
+
+function scheduleAutoSync(){
+    if (!data.settings.drive || !data.settings.drive.autoSync) return;
+    if (!gdriveToken) return;
+    if (autoSyncTimer) clearTimeout(autoSyncTimer);
+    updateSyncIndicator('pending');
+    autoSyncTimer = setTimeout(performAutoSync, AUTO_SYNC_DELAY);
+}
+
+async function performAutoSync(){
+    if (!gdriveToken) return;
+    if (!data.settings.drive || !data.settings.drive.autoSync) return;
+
+    // Offline?
+    if (!navigator.onLine) {
+        updateSyncIndicator('pending');
+        window.addEventListener('online', () => {
+            if (data.settings.drive && data.settings.drive.autoSync) performAutoSync();
+        }, { once: true });
+        return;
+    }
+
+    // Antri kalau sedang sync
+    if (autoSyncInProgress) {
+        autoSyncQueued = true;
+        return;
+    }
+
+    autoSyncInProgress = true;
+    updateSyncIndicator('syncing');
+
+    try {
+        const payload = JSON.stringify(data);
+        const file = await driveFindFile();
+
+        if (file) {
+            await driveFetch(
+                'https://www.googleapis.com/upload/drive/v3/files/' + file.id + '?uploadType=media',
+                { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: payload }
+            );
+            gdriveFileId = file.id;
+        } else {
+            const boundary = '-------stokku' + Date.now();
+            const meta = JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] });
+            const body =
+                '--' + boundary + '\r\n' +
+                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+                meta + '\r\n' +
+                '--' + boundary + '\r\n' +
+                'Content-Type: application/json\r\n\r\n' +
+                payload + '\r\n' +
+                '--' + boundary + '--';
+            const res = await driveFetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+                { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body }
+            );
+            const j = await res.json();
+            gdriveFileId = j.id;
+        }
+
+        data.settings.drive = data.settings.drive || {};
+        data.settings.drive.lastSync = Date.now();
+        // simpan langsung tanpa trigger auto-sync (cegah loop)
+        try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+
+        updateSyncIndicator('synced');
+        setTimeout(() => updateSyncIndicator('idle'), 2500);
+
+        // Refresh UI modal kalau sedang terbuka
+        if ($('#modalDrive').classList.contains('active')) renderDriveUI();
+
+        console.log('☁️ Auto-sync: OK ' + new Date().toLocaleTimeString());
+    } catch(e) {
+        console.warn('Auto-sync error:', e.message);
+        updateSyncIndicator('error');
+        setTimeout(() => updateSyncIndicator('idle'), 5000);
+
+        // Kalau token expired, minta login ulang
+        if (e.message.includes('Token expired') || e.message.includes('401')) {
+            gdriveToken = null;
+            renderDriveUI();
+            toast('⚠️ Sesi Drive berakhir, login ulang', 'error');
+        }
+    } finally {
+        autoSyncInProgress = false;
+        if (autoSyncQueued) {
+            autoSyncQueued = false;
+            setTimeout(performAutoSync, 800);
+        }
+    }
+}
+
+$('#driveAutoSync').addEventListener('change', (e) => {
+    data.settings.drive = data.settings.drive || {};
+    data.settings.drive.autoSync = e.target.checked;
+    saveData(true);
+    if (e.target.checked) {
+        toast('✅ Auto-sync aktif', 'success');
+        if (gdriveToken) scheduleAutoSync();
+    } else {
+        toast('Auto-sync nonaktif');
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
+        updateSyncIndicator('idle');
+    }
+});
+
+/* ═══════════════════════════════════════════════
+   KONFIGURASI DONASI — EDIT DI SINI
+   ═══════════════════════════════════════════════ */
+const DONASI = {
+    saweria: 'https://saweria.co/saputra84',
+    trakteer: '',
+    kofi: '',
+    buymeacoffee: '',
+    qrisImage: '',
+    bankName: '',
+    bankNumber: '',
+    bankHolder: ''
+};
+
+function renderDonasi(){
+    const list = $('#donasiList');
+    list.innerHTML = '';
+
+    if (DONASI.saweria) {
+        list.innerHTML += `
+            <a href="${DONASI.saweria}" target="_blank" rel="noopener" class="donasi-btn" style="margin-bottom:8px">
+                <span class="donasi-icon">☕</span>
+                <div class="donasi-body">
+                    <div>Traktir via Saweria</div>
+                    <div class="donasi-sub">saweria.co</div>
+                </div>
+                <span>→</span>
+            </a>`;
+    }
+
+    if (DONASI.trakteer) {
+        list.innerHTML += `
+            <a href="${DONASI.trakteer}" target="_blank" rel="noopener" class="donasi-btn" style="margin-bottom:8px;background:linear-gradient(135deg,#be123c,#881337)">
+                <span class="donasi-icon">🎁</span>
+                <div class="donasi-body">
+                    <div>Dukung via Trakteer</div>
+                    <div class="donasi-sub">trakteer.id</div>
+                </div>
+                <span>→</span>
+            </a>`;
+    }
+
+    if (DONASI.kofi) {
+        list.innerHTML += `
+            <a href="${DONASI.kofi}" target="_blank" rel="noopener" class="donasi-btn" style="margin-bottom:8px;background:linear-gradient(135deg,#29abe0,#1a7fa3)">
+                <span class="donasi-icon">💙</span>
+                <div class="donasi-body">
+                    <div>Traktir via Ko-fi</div>
+                    <div class="donasi-sub">ko-fi.com</div>
+                </div>
+                <span>→</span>
+            </a>`;
+    }
+
+    if (DONASI.buymeacoffee) {
+        list.innerHTML += `
+            <a href="${DONASI.buymeacoffee}" target="_blank" rel="noopener" class="donasi-btn" style="margin-bottom:8px;background:linear-gradient(135deg,#FFDD00,#FFB800);color:#000;border-color:#FFB800">
+                <span class="donasi-icon">☕</span>
+                <div class="donasi-body">
+                    <div>Buy Me a Coffee</div>
+                    <div class="donasi-sub" style="color:#333">buymeacoffee.com</div>
+                </div>
+                <span>→</span>
+            </a>`;
+    }
+
+    if (DONASI.qrisImage) {
+        list.innerHTML += `
+            <div class="donasi-qris" style="margin-bottom:8px">
+                <div style="font-size:11px;font-weight:600;color:#57606a;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Scan QRIS</div>
+                <img src="${DONASI.qrisImage}" alt="QRIS">
+                <div class="donasi-bank-info">
+                    Scan pakai aplikasi bank / e-wallet (GoPay, OVO, DANA, dll)
+                </div>
+            </div>`;
+    }
+
+    if (DONASI.bankNumber) {
+        list.innerHTML += `
+            <div class="donasi-qris" style="margin-bottom:8px">
+                <div style="font-size:11px;font-weight:600;color:#57606a;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Transfer Bank</div>
+                <div class="donasi-bank-info" style="margin-top:0">
+                    <div style="font-size:11px;color:#57606a">${esc(DONASI.bankName)}</div>
+                    <div class="donasi-norek">${esc(DONASI.bankNumber)}</div>
+                    <div style="font-size:11px;color:#57606a">a.n. ${esc(DONASI.bankHolder)}</div>
+                </div>
+            </div>`;
+    }
+
+    if (list.innerHTML === '') {
+        list.innerHTML = `
+            <div class="empty" style="padding:20px">
+                <div class="empty-icon">💝</div>
+                <div style="font-size:12px;line-height:1.6">
+                    Belum ada link donasi.<br>
+                    Edit bagian <code style="background:#21262d;padding:2px 6px;border-radius:4px;font-size:11px">DONASI = {...}</code> di kode untuk mengaktifkan.
+                </div>
+            </div>`;
+    }
+}
+
+$('#menuDonasi').addEventListener('click', () => {
+    closeModals();
+    renderDonasi();
+    openModal('modalDonasi');
+});
+
+/* ═══════════════════════════════════════════════
+   DONATION REMINDER (muncul sekali, setelah 3 hari)
+   ═══════════════════════════════════════════════ */
+const DONASI_REMINDER_DAYS = 3;
+
+function hasDonasiConfigured(){
+    return !!(DONASI.saweria || DONASI.trakteer || DONASI.kofi ||
+              DONASI.buymeacoffee || DONASI.qrisImage || DONASI.bankNumber);
+}
+
+function checkDonasiReminder(){
+    if (!hasDonasiConfigured()) return;
+    if (localStorage.getItem('stokku_donasi_shown') === '1') return;
+
+    let firstOpen = localStorage.getItem('stokku_first_open');
+    if (!firstOpen) {
+        localStorage.setItem('stokku_first_open', Date.now().toString());
+        return;
+    }
+
+    const days = (Date.now() - parseInt(firstOpen)) / 86400000;
+    if (days < DONASI_REMINDER_DAYS) return;
+
+    if (!data.barangs || data.barangs.length < 3) return;
+
+    // Jangan ganggu kalau user sedang di modal / belanja
+    setTimeout(() => {
+        if ($$('.modal.active').length > 0 || document.body.classList.contains('has-selection')) {
+            setTimeout(() => {
+                if ($$('.modal.active').length === 0 && !document.body.classList.contains('has-selection')) {
+                    showDonasiBanner();
+                }
+            }, 30000);
+            return;
+        }
+        showDonasiBanner();
+    }, 4000);
+}
+
+function showDonasiBanner(){
+    const b = $('#donasiBanner');
+    if (!b) return;
+    b.classList.add('show');
+    setTimeout(() => {
+        if (b.classList.contains('show')) hideDonasiBanner();
+    }, 20000);
+}
+
+function hideDonasiBanner(){
+    const b = $('#donasiBanner');
+    if (b) b.classList.remove('show');
+    localStorage.setItem('stokku_donasi_shown', '1');
+}
+
+$('#btnDonasiLihat')?.addEventListener('click', () => {
+    hideDonasiBanner();
+    closeModals();
+    renderDonasi();
+    setTimeout(() => openModal('modalDonasi'), 100);
+});
+
+$('#btnDonasiNanti')?.addEventListener('click', hideDonasiBanner);
+
+/* ═══════════════════════════════════════════════
+   BARCODE SCAN
+   ═══════════════════════════════════════════════ */
+let scanStream = null;
+let scanCallback = null;
+let scanLoopId = null;
+let barcodeDetector = null;
+
+async function startScan(callback) {
+    scanCallback = callback;
+
+    openModal('modalScan');
+    $('#scanStatus').textContent = 'Mempersiapkan kamera...';
+    $('#scanStatus').className = '';
+    $('#btnScanManual').style.display = 'none';
+
+    // Cek dukungan BarcodeDetector
+    if (!('BarcodeDetector' in window)) {
+        $('#scanStatus').innerHTML =
+            '⚠️ Browser tidak mendukung scan barcode.<br>' +
+            '<span style="font-size:11px">Coba Chrome Android, atau input manual di bawah.</span>';
+        $('#scanStatus').className = 'warn';
+        $('#btnScanManual').style.display = 'block';
+        return;
+    }
+
+    // Init detector dengan format yang didukung
+    try {
+        const supported = await BarcodeDetector.getSupportedFormats();
+        const wanted = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'qr_code'];
+        const use = wanted.filter(f => supported.includes(f));
+        barcodeDetector = use.length > 0
+            ? new BarcodeDetector({ formats: use })
+            : new BarcodeDetector();
+    } catch(e) {
+        barcodeDetector = new BarcodeDetector();
+    }
+
+    // Buka kamera
+    try {
+        scanStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        });
+        const video = $('#scanVideo');
+        video.srcObject = scanStream;
+        await video.play();
+        $('#scanStatus').textContent = 'Arahkan kamera ke barcode...';
+        scanLoop();
+    } catch(e) {
+        $('#scanStatus').textContent = '❌ Kamera gagal: ' + e.message;
+        $('#scanStatus').className = 'err';
+        $('#btnScanManual').style.display = 'block';
+    }
+}
+
+async function scanLoop() {
+    if (!barcodeDetector || !scanStream) return;
+    const video = $('#scanVideo');
+
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        scanLoopId = requestAnimationFrame(scanLoop);
+        return;
+    }
+
+    try {
+        const barcodes = await barcodeDetector.detect(video);
+        if (barcodes.length > 0) {
+            const code = String(barcodes[0].rawValue || '').trim();
+            if (code) {
+                $('#scanStatus').textContent = '✅ Terdeteksi: ' + code;
+                $('#scanStatus').className = 'ok';
+                if (navigator.vibrate) navigator.vibrate(100);
+                stopScan();
+                if (scanCallback) {
+                    setTimeout(() => {
+                        closeModals();
+                        scanCallback(code);
+                    }, 350);
+                }
+                return;
+            }
+        }
+    } catch(e) {
+        // abaikan error per frame
+    }
+    scanLoopId = requestAnimationFrame(scanLoop);
+}
+
+function stopScan() {
+    if (scanLoopId) {
+        cancelAnimationFrame(scanLoopId);
+        scanLoopId = null;
+    }
+    if (scanStream) {
+        scanStream.getTracks().forEach(t => t.stop());
+        scanStream = null;
+    }
+    const video = $('#scanVideo');
+    if (video) video.srcObject = null;
+}
+
+// Tombol scan di form barang
+$('#btnScanKode').addEventListener('click', () => {
+    startScan((code) => {
+        $('#fKode').value = code;
+        toast('✅ Kode terisi: ' + code, 'success');
+    });
+});
+
+// Tombol scan di beranda
+$('#btnScanBeranda').addEventListener('click', () => {
+    startScan((code) => {
+        const found = data.barangs.filter(b =>
+            b.lokasiId === currentLocId &&
+            (b.kode || '').toLowerCase() === code.toLowerCase()
+        );
+        $('#searchBeranda').value = code;
+        renderBeranda();
+        if (found.length > 0) {
+            toast('🔍 Ditemukan: ' + found[0].nama, 'success');
+        } else {
+            toast('⚠️ Kode ' + code + ' belum terdaftar', 'error');
+        }
+    });
+});
+
+// Input manual (fallback)
+$('#btnScanManual').addEventListener('click', () => {
+    const code = prompt('Masukkan kode barang:');
+    if (code && code.trim()) {
+        stopScan();
+        closeModals();
+        if (scanCallback) scanCallback(code.trim());
+    }
+});
+
+/* INIT */
+async function init(){
+    applyTheme();
+    // init Google Drive client (tunggu script GIS)
+    setTimeout(() => {
+        try { initDriveClient(); } catch(e) { console.warn('Drive init:', e.message); }
+    }, 1000);
+    // cek reminder donasi (muncul sekali setelah beberapa hari)
+    setTimeout(checkDonasiReminder, 2000);
+    if (navigator.storage && navigator.storage.persist) {
+        try { await navigator.storage.persist(); } catch {}
+    }
+    showView('lokasi');
+    renderLokasi();
+}
+init();
+
+/* ═══ PWA: Register Service Worker ═══ */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('✅ SW registered:', reg.scope))
+            .catch(err => console.warn('⚠️ SW gagal:', err.message));
+    });
+}
+</script>
+</body>
+  </html>
